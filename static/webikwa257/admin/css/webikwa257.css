@@ -1,0 +1,30 @@
+.help_placement_page_list table {
+
+    border-collapse: collapse;
+    border-spacing: 1em 0;
+	
+}
+
+.help_placement_page_list td, .help_placement_page_list th   {
+	border:1px solid #555;
+	padding-left:.5em;
+	padding-right:.5em;
+  text-align: left;
+}
+
+.help_image_url_snippet {
+  font-weight:bold;
+  font-size:.9em;
+
+}
+.help_image_url_copy {
+  border:1px solid var(--w-color-border-field-default);
+  border-radius:.3125rem;
+  color:var(--w-color-text-context);
+  font-size:1.1875rem;
+  font-weight:400;
+  line-height:1.5;
+  min-height:2.625rem;
+  padding:.375rem 1.25rem;
+
+}
