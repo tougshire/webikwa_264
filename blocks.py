@@ -31,6 +31,74 @@ from wagtail.images.blocks import ImageChooserBlock
 from wagtailmarkdown.blocks import MarkdownBlock
 
 
+class LinkStructValue(StructValue):
+
+    def get_description(self):
+        description = self.get("description")
+        if not description:
+            try:
+                description=self.get("article").title
+            except:
+                pass
+        return description
+
+
+class LinkBlock(StructBlock):
+
+    page = PageChooserBlock( required=False, page_type="wagtailcore.Page", help_text="Optionaly, an article to link to. If URL is filled in, the aricle's URL will be ignored. If description is filled in, the article's title will be ignored")
+    description = CharBlock( required=False, help_text="A description of the event.  If an article is chosen, this can be left blank to use the article's title")
+    url = URLBlock( required=False, help_text="A URL for the event.  If an article is chosen, this can be left blank to use the article's URL.  If there is no article and this is blank, the description will not be a link")
+    groups = CharBlock( required=False, help_text="A group name or comma separted list of group names for grouping the links. Only links in the parent block's groups be displayed") 
+
+    class Meta:
+        value_class = LinkStructValue
+
+class LinklistBlock(StructBlock):
+    
+    link_list = ListBlock(child_block=LinkBlock)
+    linkitem_class = CharBlock("link item class", default="linkitem", help_text="css class to apply to each item")
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context=parent_context)
+
+        #grouped_links = { group:[] for group in [ group.strip() for group in self.groups.split(",") ] }
+
+        links_grouped = {}
+        links = []
+
+        for link in value.get("link_list"):
+            link_data={ "url": link.get("url") }
+            description = link.get('description')
+            page = link.get("page")
+            if page:
+                if page.live:
+                    link_data["page"] = page
+                if not description:
+                    try:
+                        description = link.get("page").title
+                    except:
+                        pass
+            link_data["description"] = description
+
+            if link.get("groups"):
+                link_groups = { group:[] for group in [ group.strip() for group in link.get("groups").split(',') ] }
+
+
+                for group in link_groups:
+                    if group not in links_grouped:
+                        links_grouped[ group ] = []
+                    links_grouped[ group ].append(link_data)
+
+            links.append(link_data)
+
+        context["links_grouped"] = links_grouped
+        context["links"] = links
+
+        return context
+
+    class Meta:
+        template = "webikwa_264/blocks/linklist_block.html"
+
 class EventStructValue(StructValue):
     def do_show(self):
         today = datetime.date.today()
@@ -73,14 +141,13 @@ class EventBlock(StructBlock):
     class Meta:
         value_class = EventStructValue
 
-class EventlistBlock(ListBlock):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class EventlistBlock(StructBlock):
+    event_list = ListBlock(EventBlock)
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context=parent_context)
-        events_all = sorted(context['value'], key=lambda  value  :  "{}:{}".format(value["date"], value["time"]  ) )
 
+        events_all = sorted(value.get("event_list"), key=lambda  value  :  "{}:{}".format(value.get("date"), value.get("time")  ) )
         events_all_grouped = {}
         events_in = []
         events_in_grouped = {}
@@ -121,6 +188,7 @@ class EventlistBlock(ListBlock):
 
     class Meta:
         template = "webikwa_264/blocks/eventlist_block.html"
+
 
 class DocumentBlock(StructBlock):
     document = DocumentChooserBlock(required=True),
@@ -173,15 +241,6 @@ class HeadingBlock(StructBlock):
         icon = "title"
         template = "webikwa_264/blocks/heading_block.html"
 
-class IframeBlock(StructBlock):
-    url = URLBlock(required=True)
-    caption = CharBlock(required=False)
-    alt = CharBlock(required=True)
-
-    class Meta:
-        icon = "image"
-        template = "webikwa_264/blocks/iframe_block.html"
-    
 class BaseStreamBlock(StreamBlock):
     markdown_block = MarkdownBlock(icon="code")
     paragraph_block = RichTextBlock(icon="pilcrow", features=["link","bold","italic","ol","ul"])
@@ -189,16 +248,17 @@ class BaseStreamBlock(StreamBlock):
     document_block = DocumentChooserBlock()
     quote_block = BlockQuoteBlock()
     image_block = ImageBlock()
-    eventlist_block = EventlistBlock(
-        child_block=EventBlock()
-    )
     external_image_block = ExternalImageBlock()
+    linklist_block = LinklistBlock()
+    eventlist_block = EventlistBlock()
     embed_block = EmbedBlock(
+        label="oEmbed Block",
         help_text="The URL of the source",
         icon="media",
     )
+    #linklist_block = LinklistBlock()
+    table_block = TableBlock()
     html_block = RawHTMLBlock()
-    table = TableBlock()
 
 class BodyStreamBlock(BaseStreamBlock):
     pass

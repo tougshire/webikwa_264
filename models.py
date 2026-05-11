@@ -188,7 +188,6 @@ class SidebarPage(Page):
 
     def get_context(self, request):
 
-        print('********************************************** tpva4705')
         context = super().get_context(request)
 
         zone_title_lines = self.zone_titles.split("\n")
@@ -413,13 +412,6 @@ class ArticlePage(BaseArticlePage):
     content_panels = Page.content_panels + [
         MultiFieldPanel(
             [
-                InlinePanel("article_placements"),
-                PlacementPageListPanel(),
-            ],
-            heading="Placements"
-        ),
-        MultiFieldPanel(
-            [
                 FieldPanel("date"),
                 FieldPanel("authors", widget=forms.CheckboxSelectMultiple),
             ],
@@ -432,6 +424,13 @@ class ArticlePage(BaseArticlePage):
                 InlinePanel("article_images", label="Article images"),
 
             ],heading="Images"
+        ),
+        MultiFieldPanel(
+            [
+                InlinePanel("article_placements"),
+                PlacementPageListPanel(),
+            ],
+            heading="Placements"
         ),
         MultiFieldPanel(
             [
@@ -526,14 +525,14 @@ class SidebarArticlePage(BaseArticlePage):
     parent_page_types = ["ArticleIndexPage"]
 
     content_panels = Page.content_panels + [
+        FieldPanel("show_title"),
+        FieldPanel("body"),
         MultiFieldPanel(
             [
                 InlinePanel("article_sidebarplacements"),
             ],
             heading="Placements"
         ),
-        FieldPanel("show_title"),
-        FieldPanel("body"),
     ]
 
 
