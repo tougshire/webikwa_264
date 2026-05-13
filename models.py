@@ -399,7 +399,7 @@ class ImageUrlHelpPanel(HelpPanel):
 class ArticlePage(BaseArticlePage):
 
     date = models.DateField("Post date", default=datetime.date.today)
-    summary = models.TextField(
+    summary = models.MarkdownField(
         blank=True,
         help_text="A summary to be displayed instead of the body for index views",
     )
