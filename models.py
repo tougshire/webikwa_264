@@ -128,6 +128,7 @@ class ArticleIndexPage(Page):
     show_pagetitle = models.BooleanField(
         default=True, help_text="If the page title should be shown"
     )
+    continue_label = models.CharFIeld("continue reading label", blankd=True, max_length="25", default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
 
     subpage_types = ["ArticlePage", "SidebarArticlePage"]
 
@@ -401,7 +402,7 @@ class ArticlePage(BaseArticlePage):
     date = models.DateField("Post date", default=datetime.date.today)
     summary = MarkdownField(
         blank=True,
-        help_text="A summary to be displayed instead of the body for index views",
+        help_text="A summary, im markdown, to be displayed instead of the body for index views.  There is no hard limit on the length but the intention is for this is that it be brief",
     )
 
     authors = ParentalManyToManyField("webikwa_264.Author", blank=True)
