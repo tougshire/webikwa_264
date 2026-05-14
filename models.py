@@ -128,7 +128,7 @@ class ArticleIndexPage(Page):
     show_pagetitle = models.BooleanField(
         default=True, help_text="If the page title should be shown"
     )
-    continue_label = models.CharFIeld("continue reading label", blankd=True, max_length="25", default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
+    continue_label = models.CharField("continue reading label", blank=True, max_length=25, default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
 
     subpage_types = ["ArticlePage", "SidebarArticlePage"]
 
