@@ -43,33 +43,31 @@ These instructions are written with the assumption that you're starting a new pr
 - run the server and browse to the dashboard (http(s)://[your_url_or_ip]/admin/)
 - rename the automatically-created page
   - in the dashboard, click "Pages", then the edit icon (a pencil) for the automatically created home page 
-  - Add "-old" to the pages title (If the title of the page is "Home", change the title to "Home-Old").
-    In the promote tab, add "-old" to to the slug.
+  - Add "-old" to the pages title
+  - In the promote tab, add "-old" to to the slug.
   - publish the page
+- create a redirect page and name it 'Home'
+  - click the plus sign next to 'root'
+  - click "Redirect page"
+  - title the page 'Home'
+  - publish the page
+- make the new home page the site's root page
+  - click 'Settings'
+  - click 'Sites'
+  - click 'localhost'
+  - under "Root page", next to 'Home-old', click the three dots and "Choose a different page"
+  - choose the new home page
+  - save the changes
 - create a new article index page
-  - using the "add child page" action next to the word "Root", create a new article index page
+  - click 'Pages'
+  - click 'Home' (click the title, not the edit icon)
+  - using the "add child page" link next 'Home', create a new article index page
   - title it "Articles"
   - publish the page
 - create a new placement page
-  - from the root page, create a new placement page
+  - using the 'add child page' link, create a new placement page
   - title it "Featured Articles"
   - publish the page
-- create a new redirect page
-  - from root, create a new redirect page
-  - title it "Home"
-  - for the target page, choose the featured articles page
-  - publish the page
-- move the featured articles page and the articles index page under the home page
-  - from the page list under root, check the checkboxes next to Featured Articles and Articles
-  - click the "move" button
-  - click "Choose a page"
-  - choose Home
-  - Click "Yes, move these pages"
-- make Home the root page for the default site
-  - click "Settings" then "Sites"
-  - choose the default site (probably the only site, "localhost")
-  - change the root page from the old home page to the new home page (which is the redirect page)
-  - save the change
 
 ### Adding featured articles
 

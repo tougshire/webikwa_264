@@ -68,6 +68,20 @@ def get_sidebars(request):
 
     return(sidebars)
 
+def get_binary_components(input, len):
+    res = input
+    cur = 0
+    ret = []
+
+    while cur < len:
+        rem = ( res / 2 ) - int( res / 2 )
+        ret.append(rem)
+        res = int(res / 2)
+        cur = cur + 1
+
+    return ret
+
+
 def get_sidebars_old(request):
     sidebars = []
     for sidebarpage in SidebarPage.objects.live().all():
@@ -128,13 +142,21 @@ class ArticleIndexPage(Page):
     show_pagetitle = models.BooleanField(
         default=True, help_text="If the page title should be shown"
     )
+
+    show_article_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7, help_text="Article information to be shown " )
     continue_label = models.CharField("continue reading label", blank=True, max_length=25, default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
 
     subpage_types = ["ArticlePage", "SidebarArticlePage"]
 
     content_panels = Page.content_panels + [
-        FieldPanel("show_pagetitle"),
         FieldPanel("intro"),
+        MultiFieldPanel(
+            [
+                FieldPanel("continue_label"),
+                FieldPanel("show_article_info")
+            ],
+            heading="Article Display Options"
+        )
     ]
 
     def get_context(self, request):
@@ -312,6 +334,8 @@ class PlacementPage(Page):
     )
     zone_qty = models.IntegerField("number of zones", default=5, help_text="The number of zones on the page")
     zone_titles = models.TextField(blank=True, help_text='Titles for zones, one per line, starting each line with the zone number and a colon, and optionally a space ex: "1: Featured Articles" ')
+    show_article_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7 )
+    continue_label = models.CharField("continue reading label", blank=True, max_length=25, default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
     custom_css = models.TextField(
         blank=True,
         help_text='Custom css to be added to the html head section when this page is displayed. Zones will have class names in the format of "zone_1" where "1" is replaced by the zone number',
@@ -322,7 +346,15 @@ class PlacementPage(Page):
         FieldPanel("zone_qty"),
         FieldPanel("zone_titles"),
         FieldPanel("custom_css"),
+        MultiFieldPanel(
+            [
+                FieldPanel("continue_label"),
+                FieldPanel("show_article_info")
+            ],
+            heading="Article Display Options"
+        )
     ]
+
 
     def get_context(self, request):
 
@@ -346,7 +378,6 @@ class PlacementPage(Page):
         context['zones'] = zones
 
         context["sidebars"] = get_sidebars(request)
-        print("tpva4u811", context["sidebars"])
 
         return context
 
@@ -408,6 +439,8 @@ class ArticlePage(BaseArticlePage):
     authors = ParentalManyToManyField("webikwa_264.Author", blank=True)
     tags = ClusterTaggableManager(through=ArticlePageTag, blank=True)
 
+    show_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7, help_text="Article information to be shown when viewing the article in a singular page" )
+
     parent_page_types = ["ArticleIndexPage"]
 
     content_panels = Page.content_panels + [
@@ -415,6 +448,7 @@ class ArticlePage(BaseArticlePage):
             [
                 FieldPanel("date"),
                 FieldPanel("authors", widget=forms.CheckboxSelectMultiple),
+                FieldPanel("show_info")
             ],
             heading="Article information",
         ),
@@ -464,8 +498,28 @@ class ArticlePage(BaseArticlePage):
             placement_list.append(placement_line)
         return placement_list
 
-    def get_context(self, request):
-        context = super().get_context(request)
+    def get_show_info(self, info=""):
+        infodict = {}
+        infolist = get_binary_components(self.show_info, 3)
+        if not info:
+            return infolist
+
+        infodict["authors"] = infolist[0] 
+        infodict["date"] = infolist[1]
+        infodict["tags"] = infolist[2]
+        return infodict[info]
+    
+    def show_authors(self):
+        return self.get_show_info("authors")
+
+    def show_date(self):
+        return self.get_show_info("date")
+
+    def show_tags(self):
+        return self.get_show_info("tags")
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
 
         context["sidebars"] = get_sidebars(request)
 
@@ -473,10 +527,14 @@ class ArticlePage(BaseArticlePage):
         for tag in context["page"].tags.all():
                 context["tags"].append(tag)
 
+        context['show_authors'], context['show_date'], context['show_tags'] = get_binary_components(self.show_info, 3)
+        
         try:
             context["og_url"] = settings.OG_URL
         except AttributeError:
             pass
+
+        context["test"] = "tpva5ic22"
 
         return context
 
