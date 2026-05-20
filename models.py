@@ -332,27 +332,19 @@ class PlacementPage(Page):
     show_pagetitle = models.BooleanField(
         default=True, help_text="If the page title should be shown"
     )
-    zone_qty = models.IntegerField("number of zones", default=5, help_text="The number of zones on the page")
-    zone_titles = models.TextField(blank=True, help_text='Titles for zones, one per line, starting each line with the zone number and a colon, and optionally a space ex: "1: Featured Articles" ')
     show_article_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7 )
     continue_label = models.CharField("continue reading label", blank=True, max_length=25, default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
-    custom_css = models.TextField(
-        blank=True,
-        help_text='Custom css to be added to the html head section when this page is displayed. Zones will have class names in the format of "zone_1" where "1" is replaced by the zone number',
-    )
 
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
-        FieldPanel("zone_qty"),
-        FieldPanel("zone_titles"),
-        FieldPanel("custom_css"),
         MultiFieldPanel(
             [
                 FieldPanel("continue_label"),
                 FieldPanel("show_article_info")
             ],
             heading="Article Display Options"
-        )
+        ),
+        InlinePanel("page_zones")
     ]
 
 
@@ -360,26 +352,21 @@ class PlacementPage(Page):
 
         context = super().get_context(request)
 
-        zone_title_lines = self.zone_titles.split("\n")
-        zone_titles = {}
-        for line in zone_title_lines:
-            parts = line.split(":")
-            if len(parts) > 1 and parts[0].strip().isdigit():
-                zone_titles[ int(parts[0].strip()) ] = parts[1] 
-
-        zones = []
-        for z in range ( self.zone_qty + 1 ):
-            zones.append( {} )
-            zones[z]['title'] = zone_titles[z] if z in zone_titles else ""
-            zones[z]['class'] = f"zone_{ z }"
-            if self.pk:
-                zones[z]['placements'] = [ placement for placement in self.article_placements.filter(article__live=True).filter(zone=z).exclude(expiration_date__lt=datetime.date.today()).order_by("-article__last_published_at")]
-
-        context['zones'] = zones
-
         context["sidebars"] = get_sidebars(request)
 
         return context
+
+
+class PageZone(Orderable):
+    page = ParentalKey(
+        PlacementPage, on_delete=models.CASCADE, related_name="page_zones"
+    )
+    name = models.CharField(max_length=40, help_text="The name used to identify this zone in the admin panel")
+    title = models.CharField(max_length=40, blank=True, help_text="The title, which is optional, to be displayed on the page")
+
+    def __str__(self):
+        return "{} {}".format(self.page, self.name)
+
 
 class ImageUrlHelpPanel(HelpPanel):
 
@@ -543,8 +530,7 @@ class ArticlePage(BaseArticlePage):
 
 class ArticlePlacement(models.Model):
     article = ParentalKey(ArticlePage, related_name="article_placements")
-    page = models.ForeignKey(PlacementPage, on_delete=models.CASCADE, related_name="article_placements")
-    zone = models.IntegerField(default=1, help_text="The zone on the page.  If the number entered is greater than the number of zones on the page, the last zone will be used")
+    pagezone = models.ForeignKey(PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements")
     show_body = models.BooleanField("show full body", default=False, help_text="Show the body instead the summary")
     boldness = models.CharField("boldness", choices=(("bold", "Bold"),("normal","Normal"),("light","Light"),), default="normal", help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light")
     expiration_date = models.DateField("Expiration Date", blank=True, null=True, help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run")
@@ -553,15 +539,14 @@ class ArticlePlacement(models.Model):
         return f"{ self.article }->{ self.page }:{self.zone }"
 
     class Meta:
-        ordering=('page', 'zone', 'article')
+        ordering=('pagezone', 'article')
 
     panels = [
-        FieldPanel("page", widget=forms.Select),
-        "zone",
+        FieldPanel("article", widget=forms.Select),
+        "pagezone",
         "show_body",
         "boldness",
         "expiration_date",
-
     ]
 
 
@@ -684,7 +669,6 @@ class ArticlePageGalleryImage(Orderable):
         FieldPanel("image"),
         FieldPanel("alt_text"),
     ]
-
 
 @register_snippet
 class Author(models.Model):

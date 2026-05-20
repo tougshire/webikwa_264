@@ -18,27 +18,27 @@ import django_filters
 def register_icons(icons):
     return icons + ['webikwa_264/article.svg']
 
-class ArticlePageFilterSet(PageListingViewSet.filterset_class):
-    tags = django_filters.ModelMultipleChoiceFilter(queryset = Tag.objects.all().order_by('name') )
-    class Meta:
-        model = ArticlePage
-        fields = ["tags","article_placements__page"]
-
-class ArticlePageListingViewSet(PageListingViewSet):
-    icon = "article"
-    menu_order = 100  # will put in 3rd place (000 being 1st, 100 2nd)
-    menu_label = "Articles"
-    add_to_admin_menu = True
-    model = ArticlePage
-    columns = PageListingViewSet.columns + [Column("get_tags","Tags"), Column("get_placements", "Placements")]
-    filterset_class = ArticlePageFilterSet
-
-
-article_page_listing_viewset = ArticlePageListingViewSet("article_pages")
-@hooks.register("register_admin_viewset")
-def register_article_page_listing_viewset():
-    return article_page_listing_viewset
-
+#class ArticlePageFilterSet(PageListingViewSet.filterset_class):
+#    tags = django_filters.ModelMultipleChoiceFilter(queryset = Tag.objects.all().order_by('name') )
+#    class Meta:
+#        model = ArticlePage
+#        fields = ["tags","article_placements__page"]
+#
+##class ArticlePageListingViewSet(PageListingViewSet):
+#    icon = "article"
+#    menu_order = 100  # will put in 3rd place (000 being 1st, 100 2nd)
+#    menu_label = "Articles"
+#    add_to_admin_menu = True
+#    model = ArticlePage
+#    columns = PageListingViewSet.columns + [Column("get_tags","Tags"), Column("get_placements", "Placements")]
+#    filterset_class = ArticlePageFilterSet
+#
+#
+#article_page_listing_viewset = ArticlePageListingViewSet("article_pages")
+#@hooks.register("register_admin_viewset")
+#def register_article_page_listing_viewset():
+#    return article_page_listing_viewset
+#
 
 
 class SidebarArticlePageListingViewSet(PageListingViewSet):
