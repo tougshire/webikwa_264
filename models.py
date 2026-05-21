@@ -183,8 +183,6 @@ class SidebarPage(Page):
     show_pagetitle = models.BooleanField(
         default=False, help_text="If the title of this sidebar should be shown"
     )
-    zone_qty = models.IntegerField("number of zones", default=5, help_text="The number of zones on the page")
-    zone_titles = models.TextField(blank=True, help_text='Titles for zones, one per line, starting each line with the zone number and a colon, and optionally a space ex: "1: Featured Articles" ')
     location = models.CharField(
         "location",
         max_length=40,
@@ -203,32 +201,20 @@ class SidebarPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
-        FieldPanel("zone_qty"),
-        FieldPanel("zone_titles"),
-        FieldPanel("custom_css"),
         FieldPanel("location"),
+        InlinePanel("sidebar_page_zones")
     ]
 
-    def get_context(self, request):
+class SidebarPageZone(Orderable):
+    sidebar_page = ParentalKey(
+        SidebarPage, on_delete=models.CASCADE, related_name="sidebar_page_zones"
+    )
+    name = models.CharField(max_length=40, help_text="The name used to identify this zone in the admin panel")
+    title = models.CharField(max_length=40, blank=True, help_text="The title, which is optional, to be displayed on the page")
 
-        context = super().get_context(request)
+    def __str__(self):
+        return "{} {}".format(self.sidebar_page, self.name)
 
-        zone_title_lines = self.zone_titles.split("\n")
-        zone_titles = {}
-        for line in zone_title_lines:
-            parts = line.split(":")
-            if len(parts) > 1 and parts[0].strip().isdigit():
-                zone_titles[ int(parts[0].strip()) ] = parts[1] 
-
-        zones = []
-        for z in range ( self.zone_qty + 1 ):
-            zones.append( {} )
-            zones[z]['title'] = zone_titles[z] if z in zone_titles else ""
-            zones[z]['class'] = f"zone_{ z }"
-            zones[z]['placements'] = [ placement for placement in self.article_sidebarplacements.filter(article__live=True).filter(zone=z).exclude(expiration_date__lt=datetime.date.today()).order_by("-article__last_published_at")]
-        context['zones'] = zones
-
-        return context
 
 @register_snippet
 class ArticlePageTag(TaggedItemBase):
@@ -582,19 +568,17 @@ class SidebarArticlePage(BaseArticlePage):
 
 class ArticleSidebarPlacement(models.Model):
     article = ParentalKey(SidebarArticlePage, related_name="article_sidebarplacements")
-    page = models.ForeignKey(SidebarPage, on_delete=models.CASCADE, related_name="article_sidebarplacements")
-    zone = models.IntegerField(default=1, help_text="The zone on the page.  If the number entered is greater than the number of zones on the page, the last zone will be used")
+    sidebar_pagezone = models.ForeignKey(SidebarPageZone, on_delete=models.CASCADE, null=True, related_name="article_sidebarplacements")
     expiration_date = models.DateField("Expiration Date", blank=True, null=True, help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run")
 
     def __str__(self):
         return f"{ self.article }->{ self.page }:{self.zone }"
 
     class Meta:
-        ordering=('page', 'zone', 'article')
+        ordering=('sidebar_pagezone', 'article')
 
     panels = [
-        FieldPanel("page", widget=forms.Select),
-        "zone",
+        FieldPanel("sidebar_pagezone", widget=forms.Select),
         "expiration_date"
     ]
 
