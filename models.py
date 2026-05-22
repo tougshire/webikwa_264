@@ -370,6 +370,9 @@ class ImageUrlHelpPanel(HelpPanel):
                             <div>
                                 <label class="w-field__label">Image Code</label>
                             </div>
+                                <p class="help">
+                                    These options are for generating code to place this image in a markdown or html block.  They do not affect how this image is displayed in an image block.
+                                </p>
                             <div>
                                 <select class="w-field" name="set_image_classwidth">
                                     <option value="widthstandard">Width</option>
