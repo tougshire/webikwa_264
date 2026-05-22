@@ -521,7 +521,7 @@ class ArticlePlacement(models.Model):
     article = ParentalKey(ArticlePage, related_name="article_placements")
     pagezone = models.ForeignKey(PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements")
     show_body = models.BooleanField("show full body", default=False, help_text="Show the body instead the summary")
-    boldness = models.CharField("boldness", choices=(("bold", "Bold"),("normal","Normal"),("light","Light"),), default="normal", help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light")
+    boldness = models.CharField("boldness", max_length=40, choices=(("bold", "Bold"),("normal","Normal"),("light","Light"),), default="normal", help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light")
     expiration_date = models.DateField("Expiration Date", blank=True, null=True, help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run")
 
     def __str__(self):
