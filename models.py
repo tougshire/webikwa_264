@@ -260,14 +260,12 @@ class PlacementPageListPanel(HelpPanel):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             content = '<div class="help_placement_page_list"><h3>Available Placement Pages</h3>'
-            content = content + "<table><tr><th>page</th><th>zones</th><th>titles</th></tr>"
+            content = content + "<table><tr><th>page</th></tr>"
             aplaces = PlacementPage.objects.all()
             for page in aplaces:
                 content = content + format_html(
-                    "<tr><td>{}:  </td><td>{}</td><td>{}</td></tr>",
+                    "<tr><td>{}</td></tr>",
                     page.slug,
-                    page.zone_qty,
-                    mark_safe(page.zone_titles)
                 )
 
             content = content + "</table></div>"
@@ -353,6 +351,8 @@ class PageZone(Orderable):
     def __str__(self):
         return "{} {}".format(self.page, self.name)
 
+    class Meta:
+        ordering = ["page","sort_order"]
 
 class ImageUrlHelpPanel(HelpPanel):
 
@@ -465,7 +465,7 @@ class ArticlePage(BaseArticlePage):
     def get_placements(self):
         placement_list = []
         for placement in self.article_placements.all():
-            placement_line = f"{placement.page}:{placement.zone}"
+            placement_line = f"{placement.pagezone}"
             if placement.expiration_date is not None and placement.expiration_date < datetime.date.today():
                 placement_line = placement_line + " (expired)"
             placement_list.append(placement_line)
