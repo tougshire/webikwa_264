@@ -57,16 +57,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_sidebars(request):
-
     sidebars = []
     for sidebar in SidebarPage.objects.live().all():
         context = sidebar.get_context(request)
         for key in context:
-            if not hasattr(sidebar,key):
+            if not hasattr(sidebar, key):
                 setattr(sidebar, key, context[key])
         sidebars.append(sidebar)
 
-    return(sidebars)
+    return sidebars
+
 
 def get_binary_components(input, len):
     res = input
@@ -74,7 +74,7 @@ def get_binary_components(input, len):
     ret = []
 
     while cur < len:
-        rem = ( res / 2 ) - int( res / 2 )
+        rem = (res / 2) - int(res / 2)
         ret.append(rem)
         res = int(res / 2)
         cur = cur + 1
@@ -101,7 +101,6 @@ def get_sidebars_old(request):
 
 
 class RedirectPage(Page):
-
     target_page = models.ForeignKey(
         "wagtailcore.Page",
         null=True,
@@ -123,7 +122,6 @@ class RedirectPage(Page):
 
 
 class ArticleSingularPage(Page):
-
     target_page = models.ForeignKey(
         "wagtailcore.Page",
         null=True,
@@ -143,32 +141,47 @@ class ArticleIndexPage(Page):
         default=True, help_text="If the page title should be shown"
     )
 
-    show_article_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7, help_text="Article information to be shown " )
-    continue_label = models.CharField("continue reading label", blank=True, max_length=25, default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
+    show_article_info = models.IntegerField(
+        choices=(
+            (0, "hide all"),
+            (7, "show all"),
+            (3, "show authors and date"),
+            (1, "show authors"),
+            (2, "show date"),
+            (4, "show tags"),
+        ),
+        default=7,
+        help_text="Article information to be shown ",
+    )
+    continue_label = models.CharField(
+        "continue reading label",
+        blank=True,
+        max_length=25,
+        default="continue reading",
+        help_text='The text to display in the "continue reading" link.  Blank to hide link',
+    )
 
     subpage_types = ["ArticlePage", "SidebarArticlePage"]
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
         MultiFieldPanel(
-            [
-                FieldPanel("continue_label"),
-                FieldPanel("show_article_info")
-            ],
-            heading="Article Display Options"
-        )
+            [FieldPanel("continue_label"), FieldPanel("show_article_info")],
+            heading="Article Display Options",
+        ),
     ]
 
     def get_context(self, request):
-
         tag = request.GET.getlist("tag")
 
         context = super().get_context(request)
 
         #        ArticlePages = self.get_children().specific().live()
-        ArticlePages = ArticlePage.objects.live().order_by('-last_published_at')
+        ArticlePages = ArticlePage.objects.live().order_by("-last_published_at")
         if tag:
-            ArticlePages = ArticlePages.filter(tags__name__in=tag).order_by('last_published_at')
+            ArticlePages = ArticlePages.filter(tags__name__in=tag).order_by(
+                "last_published_at"
+            )
 
         context["articlepages"] = ArticlePages
 
@@ -178,8 +191,6 @@ class ArticleIndexPage(Page):
 
 
 class SidebarPage(Page):
-
-
     show_pagetitle = models.BooleanField(
         default=False, help_text="If the title of this sidebar should be shown"
     )
@@ -202,15 +213,23 @@ class SidebarPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
         FieldPanel("location"),
-        InlinePanel("sidebar_page_zones")
+        InlinePanel("sidebar_page_zones"),
     ]
+
 
 class SidebarPageZone(Orderable):
     sidebar_page = ParentalKey(
         SidebarPage, on_delete=models.CASCADE, related_name="sidebar_page_zones"
     )
-    name = models.CharField(max_length=40, help_text="The name used to identify this zone in the admin panel")
-    title = models.CharField(max_length=40, blank=True, help_text="The title, which is optional, to be displayed on the page")
+    name = models.CharField(
+        max_length=40,
+        help_text="The name used to identify this zone in the admin panel",
+    )
+    title = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="The title, which is optional, to be displayed on the page",
+    )
 
     def __str__(self):
         return "{} {}".format(self.sidebar_page, self.name)
@@ -224,7 +243,6 @@ class ArticlePageTag(TaggedItemBase):
 
 
 class BaseArticlePage(Page):
-
     body = StreamField(
         BodyStreamBlock(),
         blank=True,
@@ -235,7 +253,6 @@ class BaseArticlePage(Page):
 
     class Meta:
         verbose_name = "Base Article"
-
 
     def featured_image(self):
         try:
@@ -255,7 +272,6 @@ class BaseArticlePage(Page):
 
 
 class PlacementPageListPanel(HelpPanel):
-
     class BoundPanel(HelpPanel.BoundPanel):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
@@ -273,21 +289,29 @@ class PlacementPageListPanel(HelpPanel):
 
 
 class TagListPanel(HelpPanel):
-
     class BoundPanel(HelpPanel.BoundPanel):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             content = '<div class="help_tag_list"><h3>Current Tags</h3>'
-            content = content + "<table id='tagged_item_list'><tr><th>Tag</th><th>Count</th><th>&nbsp;</th></tr>"
-            tagged_items = Tag.objects.annotate(num_tags=Count("articlepage")).order_by("-num_tags")
+            content = (
+                content
+                + "<table id='tagged_item_list'><tr><th>Tag</th><th>Count</th><th>&nbsp;</th></tr>"
+            )
+            tagged_items = Tag.objects.annotate(num_tags=Count("articlepage")).order_by(
+                "-num_tags"
+            )
             for tagged_item in tagged_items:
                 content = content + format_html(
                     "<tr><td>{}</td><td>{}</td><td><button type='button' data-slug='{}'>add</button></tr>",
-                    tagged_item.slug, tagged_item.num_tags, tagged_item.slug
+                    tagged_item.slug,
+                    tagged_item.num_tags,
+                    tagged_item.slug,
                 )
 
             content = content + "</table></div>"
-            content = content + '''
+            content = (
+                content
+                + """
             <script>
                 document.getElementById("tagged_item_list").addEventListener("click", function(e) {
                     e.preventDefault()
@@ -307,33 +331,44 @@ class TagListPanel(HelpPanel):
                     }
                 })
                 </script>
-                '''
+                """
+            )
             self.content = content
 
 
 class PlacementPage(Page):
-
     show_pagetitle = models.BooleanField(
         default=True, help_text="If the page title should be shown"
     )
-    show_article_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7 )
-    continue_label = models.CharField("continue reading label", blank=True, max_length=25, default="continue reading", help_text="The text to display in the \"continue reading\" link.  Blank to hide link")
+    show_article_info = models.IntegerField(
+        choices=(
+            (0, "hide all"),
+            (7, "show all"),
+            (3, "show authors and date"),
+            (1, "show authors"),
+            (2, "show date"),
+            (4, "show tags"),
+        ),
+        default=7,
+    )
+    continue_label = models.CharField(
+        "continue reading label",
+        blank=True,
+        max_length=25,
+        default="continue reading",
+        help_text='The text to display in the "continue reading" link.  Blank to hide link',
+    )
 
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
         MultiFieldPanel(
-            [
-                FieldPanel("continue_label"),
-                FieldPanel("show_article_info")
-            ],
-            heading="Article Display Options"
+            [FieldPanel("continue_label"), FieldPanel("show_article_info")],
+            heading="Article Display Options",
         ),
-        InlinePanel("page_zones")
+        InlinePanel("page_zones"),
     ]
 
-
     def get_context(self, request):
-
         context = super().get_context(request)
 
         context["sidebars"] = get_sidebars(request)
@@ -345,26 +380,33 @@ class PageZone(Orderable):
     page = ParentalKey(
         PlacementPage, on_delete=models.CASCADE, related_name="page_zones"
     )
-    name = models.CharField(max_length=40, help_text="The name used to identify this zone in the admin panel")
-    title = models.CharField(max_length=40, blank=True, help_text="The title, which is optional, to be displayed on the page")
+    name = models.CharField(
+        max_length=40,
+        help_text="The name used to identify this zone in the admin panel",
+    )
+    title = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="The title, which is optional, to be displayed on the page",
+    )
 
     def __str__(self):
         return "{} {}".format(self.page, self.name)
 
     class Meta:
-        ordering = ["page","sort_order"]
+        ordering = ["page", "sort_order"]
+
 
 class ImageUrlHelpPanel(HelpPanel):
-
     class BoundPanel(HelpPanel.BoundPanel):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
 
             try:
                 url = self.instance.image.file.url
-                alt_text = html.escape(self.instance.alt_text.replace('"',"'"))
+                alt_text = html.escape(self.instance.alt_text.replace('"', "'"))
                 instid = self.instance.id
-                content='''
+                content = """
                     <div>
                         <div class="help_image_url">
                             <div>
@@ -398,14 +440,13 @@ class ImageUrlHelpPanel(HelpPanel):
                             </div>
                         </div>
                     </div>
-                '''
-                self.content = content.format( instid=instid, url=url, alt_text=alt_text )
+                """
+                self.content = content.format(instid=instid, url=url, alt_text=alt_text)
             except WagtailImage.DoesNotExist as e:
                 print(e, type(e))
 
 
 class ArticlePage(BaseArticlePage):
-
     date = models.DateField("Post date", default=datetime.date.today)
     summary = MarkdownField(
         blank=True,
@@ -415,7 +456,18 @@ class ArticlePage(BaseArticlePage):
     authors = ParentalManyToManyField("webikwa_264.Author", blank=True)
     tags = ClusterTaggableManager(through=ArticlePageTag, blank=True)
 
-    show_info = models.IntegerField(choices=((0,"hide all"),(7,"show all"),(3,"show authors and date"),(1,"show authors"),(2,"show date"),(4,"show tags")), default=7, help_text="Article information to be shown when viewing the article in a singular page" )
+    show_info = models.IntegerField(
+        choices=(
+            (0, "hide all"),
+            (7, "show all"),
+            (3, "show authors and date"),
+            (1, "show authors"),
+            (2, "show date"),
+            (4, "show tags"),
+        ),
+        default=7,
+        help_text="Article information to be shown when viewing the article in a singular page",
+    )
 
     parent_page_types = ["ArticleIndexPage"]
 
@@ -424,7 +476,7 @@ class ArticlePage(BaseArticlePage):
             [
                 FieldPanel("date"),
                 FieldPanel("authors", widget=forms.CheckboxSelectMultiple),
-                FieldPanel("show_info")
+                FieldPanel("show_info"),
             ],
             heading="Article information",
         ),
@@ -433,23 +485,17 @@ class ArticlePage(BaseArticlePage):
         MultiFieldPanel(
             [
                 InlinePanel("article_images", label="Article images"),
-
-            ],heading="Images"
+            ],
+            heading="Images",
         ),
         MultiFieldPanel(
             [
                 InlinePanel("article_placements"),
                 PlacementPageListPanel(),
             ],
-            heading="Placements"
+            heading="Placements",
         ),
-        MultiFieldPanel(
-            [
-
-                FieldPanel("tags"),
-                TagListPanel()
-            ]
-        )
+        MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
     ]
 
     search_fields = Page.search_fields + [
@@ -469,7 +515,10 @@ class ArticlePage(BaseArticlePage):
         placement_list = []
         for placement in self.article_placements.all():
             placement_line = f"{placement.pagezone}"
-            if placement.expiration_date is not None and placement.expiration_date < datetime.date.today():
+            if (
+                placement.expiration_date is not None
+                and placement.expiration_date < datetime.date.today()
+            ):
                 placement_line = placement_line + " (expired)"
             placement_list.append(placement_line)
         return placement_list
@@ -480,11 +529,11 @@ class ArticlePage(BaseArticlePage):
         if not info:
             return infolist
 
-        infodict["authors"] = infolist[0] 
+        infodict["authors"] = infolist[0]
         infodict["date"] = infolist[1]
         infodict["tags"] = infolist[2]
         return infodict[info]
-    
+
     def show_authors(self):
         return self.get_show_info("authors")
 
@@ -501,10 +550,12 @@ class ArticlePage(BaseArticlePage):
 
         context["tags"] = []
         for tag in context["page"].tags.all():
-                context["tags"].append(tag)
+            context["tags"].append(tag)
 
-        context['show_authors'], context['show_date'], context['show_tags'] = get_binary_components(self.show_info, 3)
-        
+        context["show_authors"], context["show_date"], context["show_tags"] = (
+            get_binary_components(self.show_info, 3)
+        )
+
         try:
             context["og_url"] = settings.OG_URL
         except AttributeError:
@@ -517,18 +568,38 @@ class ArticlePage(BaseArticlePage):
     def get_success_url(self):
         return "admin/article_pages"
 
+
 class ArticlePlacement(models.Model):
     article = ParentalKey(ArticlePage, related_name="article_placements")
-    pagezone = models.ForeignKey(PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements")
-    show_body = models.BooleanField("show full body", default=False, help_text="Show the body instead the summary")
-    boldness = models.CharField("boldness", max_length=40, choices=(("bold", "Bold"),("normal","Normal"),("light","Light"),), default="normal", help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light")
-    expiration_date = models.DateField("Expiration Date", blank=True, null=True, help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run")
+    pagezone = models.ForeignKey(
+        PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
+    )
+    show_body = models.BooleanField(
+        "show full body", default=False, help_text="Show the body instead the summary"
+    )
+    boldness = models.CharField(
+        "boldness",
+        max_length=40,
+        choices=(
+            ("bold", "Bold"),
+            ("normal", "Normal"),
+            ("light", "Light"),
+        ),
+        default="normal",
+        help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light",
+    )
+    expiration_date = models.DateField(
+        "Expiration Date",
+        blank=True,
+        null=True,
+        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+    )
 
     def __str__(self):
-        return f"{ self.article }->{ self.page }:{self.zone }"
+        return f"{self.article}->{self.pagezone}"
 
     class Meta:
-        ordering=('pagezone', 'article')
+        ordering = ("pagezone", "article")
 
     panels = [
         FieldPanel("article", widget=forms.Select),
@@ -541,15 +612,16 @@ class ArticlePlacement(models.Model):
 
 class ArticlePlacementViewSet(SnippetViewSet):
     model = ArticlePlacement
-    list_display = [ "article", "page", "zone", "expiration_date" ]
+    list_display = ["article", "pagezone", "expiration_date"]
     inspect_view_enabled = True
-    
-    list_filter = {"page": ["exact"], "expiration_date": ["lt"] }
+
+    list_filter = {"pagezone": ["exact"], "expiration_date": ["lt"]}
+
 
 register_snippet(ArticlePlacementViewSet)
 
-class SidebarArticlePage(BaseArticlePage):
 
+class SidebarArticlePage(BaseArticlePage):
     date = models.DateField("Post date", default=datetime.date.today)
     show_title = models.BooleanField(
         default=True, help_text="If the title should be shown"
@@ -564,35 +636,45 @@ class SidebarArticlePage(BaseArticlePage):
             [
                 InlinePanel("article_sidebarplacements"),
             ],
-            heading="Placements"
+            heading="Placements",
         ),
     ]
 
 
 class ArticleSidebarPlacement(models.Model):
     article = ParentalKey(SidebarArticlePage, related_name="article_sidebarplacements")
-    sidebar_pagezone = models.ForeignKey(SidebarPageZone, on_delete=models.CASCADE, null=True, related_name="article_sidebarplacements")
-    expiration_date = models.DateField("Expiration Date", blank=True, null=True, help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run")
+    sidebar_pagezone = models.ForeignKey(
+        SidebarPageZone,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="article_sidebarplacements",
+    )
+    expiration_date = models.DateField(
+        "Expiration Date",
+        blank=True,
+        null=True,
+        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+    )
 
     def __str__(self):
-        return f"{ self.article }->{ self.page }:{self.zone }"
+        return f"{self.article}->{self.page}:{self.zone}"
 
     class Meta:
-        ordering=('sidebar_pagezone', 'article')
+        ordering = ("sidebar_pagezone", "article")
 
-    panels = [
-        FieldPanel("sidebar_pagezone", widget=forms.Select),
-        "expiration_date"
-    ]
+    panels = [FieldPanel("sidebar_pagezone", widget=forms.Select), "expiration_date"]
+
 
 class ArticleSidebarPlacementViewSet(SnippetViewSet):
     model = ArticleSidebarPlacement
-    list_display = [ "article", "page", "zone", "expiration_date" ]
+    list_display = ["article", "page", "zone", "expiration_date"]
     inspect_view_enabled = True
-    
-    list_filter = {"page": ["exact"], "expiration_date": ["lt"] }
+
+    list_filter = {"page": ["exact"], "expiration_date": ["lt"]}
+
 
 register_snippet(ArticleSidebarPlacementViewSet)
+
 
 class ArticlePageImage(Orderable):
     page = ParentalKey(
@@ -657,6 +739,7 @@ class ArticlePageGalleryImage(Orderable):
         FieldPanel("alt_text"),
     ]
 
+
 @register_snippet
 class Author(models.Model):
     name = models.CharField(max_length=255)
@@ -693,7 +776,6 @@ class SiteSpecificImportantPages(BaseSiteSetting):
 
 @register_setting
 class SiteTemplateSettings(BaseSiteSetting):
-
     header_style = models.CharField(
         max_length=255,
         blank=True,
@@ -764,9 +846,9 @@ class SiteTemplateSettings(BaseSiteSetting):
         default="black",
         help_text='The theme color. This should match the base name of a css file in a static folder webikwa_264/css. Ex "blue" if there is a webikwa_264/css/blue.css',
     )
-    after_article = MarkdownField (
-       "after_article",
-        default='''
+    after_article = MarkdownField(
+        "after_article",
+        default="""
             <div id="after_article">
                 You can share this post on most social media by copying the URL and pasting it into a post.
                 <button type="button" id="copy_url_button">copy url</button>
@@ -784,8 +866,8 @@ class SiteTemplateSettings(BaseSiteSetting):
                     url_div.removeChild(url_input)
                 })
             </script>
-        ''',
-        help_text="content to follow each article"
+        """,
+        help_text="content to follow each article",
     )
     footer_text = MarkdownField(
         "footer text",
@@ -812,7 +894,6 @@ class SiteTemplateSettings(BaseSiteSetting):
 
 
 def clean_form(self):
-
     honeypot_err = False
 
     for field_name in self.honeypot_field_list:
@@ -827,11 +908,9 @@ def clean_form(self):
 
 
 class FormPage(AbstractEmailForm):
-
     # h/t: https://github.com/octavenz/wagtail-snippets/blob/master/form-builder-field-validation.md for explanatin of get_form and use of the descriptor
 
     def get_form(self, *args, **kwargs):
-
         form = super().get_form(*args, **kwargs)
         form.honeypot_error_message = self.honeypot_error_message
 
@@ -917,7 +996,6 @@ class FormPage(AbstractEmailForm):
 
 
 class FormField(AbstractFormField):
-
     page = ParentalKey(FormPage, on_delete=models.CASCADE, related_name="form_fields")
 
 
@@ -958,8 +1036,4 @@ class ArticleCommentPage(Page):
 
 
 def get_timezone():
-
     return settings.TIME_ZONE if hasattr(settings, "TIME_ZONE") else "Etc/UTC"
-
-
-
