@@ -146,13 +146,13 @@ class EventBlock(StructBlock):
     def get_default_showbefore():
         try:
             return settings.WEBIKWA["eventlist_showbefore"]
-        except:
+        except (AttributeError, KeyError):
             return 90
 
     def get_default_showafter():
         try:
             return settings.WEBIKWA["eventlist_showafter"]
-        except:
+        except (AttributeError, KeyError):
             return 1
 
     date = DateBlock()
@@ -195,7 +195,7 @@ class EventlistBlock(StructBlock):
         events_in_grouped = {}
         today = datetime.date.today()
         for event in events_all:
-            description = event.get("description")
+            description = event.get_description()
             if not description:
                 try:
                     description = event.get("article").title
@@ -226,6 +226,69 @@ class EventlistBlock(StructBlock):
                         "events": [],
                     }
                 events_in_grouped[date_key]["events"].append(event_data)
+
+        context["events_all"] = events_all
+        context["events_all_grouped"] = events_all_grouped
+        context["events"] = events_in
+        context["events_grouped"] = events_in_grouped
+
+        return context
+
+    class Meta:
+        template = "webikwa_264/blocks/eventlist_block.html"
+
+
+class EventsBlock(StructBlock):
+    calendar_tags = CharBlock(required=False)
+
+    def get_context(self, value, parent_context=None):
+        from webikwa_264.models import CalendarEvent
+
+        context = super().get_context(value, parent_context=parent_context)
+
+        events_all = CalendarEvent.objects.all()
+        tags = list(
+            filter(len, [tag.strip() for tag in value["calendar_tags"].split(",")])
+        )
+
+        events_all_grouped = {}
+        events_in = []
+        events_in_grouped = {}
+        today = datetime.date.today()
+        for event in events_all:
+            tag_ok = True
+            if tags:
+                tag_ok = False
+                event_tags = [tag.strip() for tag in event.calendar_tags.split(",")]
+                tag_ok = True in [tag in event_tags for tag in tags]
+
+            if tag_ok:
+                date_key = event.date.isoformat()
+                event_data = {
+                    "time": event.time,
+                    "description": event.get_description(),
+                }
+                article = event.article
+                if article:
+                    if article.live:
+                        event_data["article"] = article
+
+                if date_key not in events_all_grouped:
+                    events_all_grouped[date_key] = {"date": event.date, "events": []}
+                events_all_grouped[date_key]["events"].append(event_data)
+
+                if event.date < today + datetime.timedelta(
+                    days=event.show_days_before_start
+                ) and event.date > today - datetime.timedelta(
+                    days=event.show_days_after_end
+                ):
+                    events_in.append(event)
+                    if date_key not in events_in_grouped:
+                        events_in_grouped[date_key] = {
+                            "date": event.date,
+                            "events": [],
+                        }
+                    events_in_grouped[date_key]["events"].append(event_data)
 
         context["events_all"] = events_all
         context["events_all_grouped"] = events_all_grouped
@@ -302,6 +365,7 @@ class BaseStreamBlock(StreamBlock):
     image_block = ImageBlock()
     external_image_block = ExternalImageBlock()
     linklist_block = LinklistBlock()
+    events_block = EventsBlock()
     eventlist_block = EventlistBlock()
     embed_block = EmbedBlock(
         label="oEmbed Block",

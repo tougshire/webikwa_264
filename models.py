@@ -16,7 +16,7 @@ from django.db import OperationalError, models
 from django.db.models import Count
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe, strip_tags
-from modelcluster.contrib.taggit import ClusterTaggableManager
+from modelcluster.contrib.taggit import ClusterTaggableManager, TaggableManager
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from taggit.models import Tag, TaggedItemBase
 from wagtail.admin.panels import (
@@ -52,6 +52,7 @@ from wagtail.snippets.views.snippets import SnippetViewSet
 from wagtailmarkdown.fields import MarkdownField
 
 from .blocks import BodyStreamBlock
+
 
 logger = logging.getLogger(__name__)
 
@@ -1037,3 +1038,59 @@ class ArticleCommentPage(Page):
 
 def get_timezone():
     return settings.TIME_ZONE if hasattr(settings, "TIME_ZONE") else "Etc/UTC"
+
+
+@register_snippet
+class CalendarEvent(models.Model):
+    def get_default_showbefore():
+        try:
+            return settings.WEBIKWA["eventlist_showbefore"]
+        except (AttributeError, KeyError):
+            return 90
+
+    def get_default_showafter():
+        try:
+            return settings.WEBIKWA["eventlist_showafter"]
+        except (AttributeError, KeyError):
+            return 1
+
+    date = models.DateField()
+    time = models.TimeField(
+        blank=True, null=True, help_text="The starting time of the event.  Optional"
+    )
+    article = models.ForeignKey(
+        ArticlePage,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text="Optionaly, an article to link to. If URL is filled in, the aricle's URL will be ignored. If description is filled in, the article's title will be ignored",
+    )
+    description = models.CharField(
+        blank=True,
+        help_text="A description of the event.  If an article is chosen, this can be left blank to use the article's title",
+    )
+    url = models.URLField(
+        blank=True,
+        help_text="A URL for the event.  If an article is chosen, this can be left blank to use the article's URL.  If there is no article and this is blank, the description will not be a link",
+    )
+    show_days_before_start = models.IntegerField(default=get_default_showbefore())
+    show_days_after_end = models.IntegerField(default=get_default_showafter())
+
+    calendar_tags = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="An optional comma-separated list of tags.  Tags may be used by the displaying block to filter events",
+    )
+
+    def get_description(self):
+        description = self.description
+        if not description:
+            try:
+                description = self.article.title
+            except AttributeError:
+                pass
+
+        return description
+
+    def __str__(self):
+        return "{} {}".format(self.get_description(), self.date)
