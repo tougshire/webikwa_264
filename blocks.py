@@ -7,6 +7,7 @@ from django.utils.functional import cached_property
 
 from wagtail.admin.telepath import register
 from wagtail.blocks import (
+    Block,
     StreamBlock,
     StructBlock,
     BlockQuoteBlock,
@@ -242,7 +243,7 @@ class EventsBlock(StructBlock):
     calendar_tags = CharBlock(required=False)
 
     def get_context(self, value, parent_context=None):
-        from webikwa_264.models import CalendarEvent
+        from .models import CalendarEvent
 
         context = super().get_context(value, parent_context=parent_context)
 
@@ -354,6 +355,11 @@ class HeadingBlock(StructBlock):
         template = "webikwa_264/blocks/heading_block.html"
 
 
+class SummaryBlock(StructBlock):
+    class Meta:
+        template = "webikwa_264/blocks/summary_block.html"
+
+
 class BaseStreamBlock(StreamBlock):
     markdown_block = MarkdownBlock(icon="code")
     paragraph_block = RichTextBlock(
@@ -375,6 +381,7 @@ class BaseStreamBlock(StreamBlock):
     # linklist_block = LinklistBlock()
     table_block = TableBlock()
     html_block = RawHTMLBlock()
+    summary_block = SummaryBlock()
 
 
 class BodyStreamBlock(BaseStreamBlock):
