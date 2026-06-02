@@ -21,9 +21,11 @@ from wagtail.blocks import (
     RichTextBlock,
     TimeBlock,
     URLBlock,
+    StaticBlock,
     StructValue,
 )
 
+from wagtail.admin.panels import HelpPanel
 from wagtail.blocks.struct_block import StructBlockAdapter
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.documents.blocks import DocumentChooserBlock
@@ -355,8 +357,9 @@ class HeadingBlock(StructBlock):
         template = "webikwa_264/blocks/heading_block.html"
 
 
-class SummaryBlock(StructBlock):
+class SummaryBlock(StaticBlock):
     class Meta:
+        admin_text = "Copies the contents of the summary into this location"
         template = "webikwa_264/blocks/summary_block.html"
 
 
