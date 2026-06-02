@@ -181,6 +181,7 @@ class EventBlock(StructBlock):
 
     class Meta:
         value_class = EventStructValue
+        label = "Event Block (depreciated = use EventsBlock and CalendarEvents"
 
 
 class EventlistBlock(StructBlock):
@@ -239,6 +240,7 @@ class EventlistBlock(StructBlock):
 
     class Meta:
         template = "webikwa_264/blocks/eventlist_block.html"
+        label = "Event List Block (depreciated = use EventsBlock and CalendarEvents"
 
 
 class EventsBlock(StructBlock):
@@ -364,6 +366,7 @@ class SummaryBlock(StaticBlock):
 
 
 class BaseStreamBlock(StreamBlock):
+    summary_block = SummaryBlock()
     markdown_block = MarkdownBlock(icon="code")
     paragraph_block = RichTextBlock(
         icon="pilcrow", features=["link", "bold", "italic", "ol", "ul"]
@@ -384,7 +387,6 @@ class BaseStreamBlock(StreamBlock):
     # linklist_block = LinklistBlock()
     table_block = TableBlock()
     html_block = RawHTMLBlock()
-    summary_block = SummaryBlock()
 
 
 class BodyStreamBlock(BaseStreamBlock):
