@@ -133,6 +133,7 @@ class ArticleSingularPage(Page):
 
     content_panels = Page.content_panels + [
         PageChooserPanel("target_page", page_type=["webikwa_264.ArticlePage"]),
+        # InlinePanel("submenu_items"),
     ]
 
 
@@ -170,6 +171,7 @@ class ArticleIndexPage(Page):
             [FieldPanel("continue_label"), FieldPanel("show_article_info")],
             heading="Article Display Options",
         ),
+        # InlinePanel("submenu_items"),
     ]
 
     def get_context(self, request):
@@ -367,6 +369,7 @@ class PlacementPage(Page):
             heading="Article Display Options",
         ),
         InlinePanel("page_zones"),
+        # InlinePanel("submenu_items"),
     ]
 
     def get_context(self, request):
@@ -1089,3 +1092,16 @@ class CalendarEvent(models.Model):
 
     class Meta:
         ordering = ("date", "time")
+
+
+# class SubMenuItem(Orderable):
+#    under_page = ParentalKey(
+#        Page,
+#        help_text="The page for which this submenu item should be displayed",
+#        on_delete=models.CASCADE,
+#        related_name="submenu_items",
+#    )
+#    label = models.CharField(max_length=20, help_text="The label to be displayed")
+#    target = models.ForeignKey(
+#        Page, on_delete=models.CASCADE, help_text="The target page"
+#    )
