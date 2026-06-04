@@ -1042,18 +1042,6 @@ def get_timezone():
 
 @register_snippet
 class CalendarEvent(models.Model):
-    def get_default_showbefore():
-        try:
-            return settings.WEBIKWA["eventlist_showbefore"]
-        except (AttributeError, KeyError):
-            return 90
-
-    def get_default_showafter():
-        try:
-            return settings.WEBIKWA["eventlist_showafter"]
-        except (AttributeError, KeyError):
-            return 1
-
     date = models.DateField()
     time = models.TimeField(
         blank=True, null=True, help_text="The starting time of the event.  Optional"
@@ -1073,13 +1061,17 @@ class CalendarEvent(models.Model):
         blank=True,
         help_text="A URL for the event.  If an article is chosen, this can be left blank to use the article's URL.  If there is no article and this is blank, the description will not be a link",
     )
-    show_days_before_start = models.IntegerField(default=get_default_showbefore())
-    show_days_after_end = models.IntegerField(default=get_default_showafter())
 
     calendar_tags = models.CharField(
         max_length=255,
         blank=True,
-        help_text="An optional comma-separated list of tags.  Tags may be used by the displaying block to filter events",
+        help_text="An optional comma-separated list of tags.  Calendar tags may be used by the displaying block to filter events.  These are not the same as tags used in articles",
+    )
+
+    priority = models.IntegerField(
+        choices=[(1, "1"), (2, "2"), (3, "3")],
+        default=2,
+        help_text="The priorty of the event, with 1, 2, and 3 being high, normal, and low respectively",
     )
 
     def get_description(self):
@@ -1094,3 +1086,6 @@ class CalendarEvent(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.get_description(), self.date)
+
+    class Meta:
+        ordering = ("date", "time")
