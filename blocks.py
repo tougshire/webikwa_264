@@ -460,8 +460,5 @@ class BaseStreamBlock(StreamBlock):
     heading_block = HeadingBlock()
 
 
-#    eventlist_block = EventlistBlock()
-
-
 class BodyStreamBlock(BaseStreamBlock):
     pass
