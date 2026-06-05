@@ -440,26 +440,27 @@ class EventlistBlock(StructBlock):
 class BaseStreamBlock(StreamBlock):
     summary_block = SummaryBlock()
     markdown_block = MarkdownBlock(icon="code")
+    html_block = RawHTMLBlock()
+    image_block = ImageBlock()
+    external_image_block = ExternalImageBlock()
+    document_block = DocumentChooserBlock()
     paragraph_block = RichTextBlock(
         icon="pilcrow", features=["link", "bold", "italic", "ol", "ul"]
     )
-    heading_block = HeadingBlock()
-    document_block = DocumentChooserBlock()
     quote_block = BlockQuoteBlock()
-    image_block = ImageBlock()
-    external_image_block = ExternalImageBlock()
-    linklist_block = LinklistBlock()
     events_block = EventsBlock()
+    linklist_block = LinklistBlock()
+    table_block = TableBlock()
+    submenu_block = SubmenuBlock()
     embed_block = EmbedBlock(
         label="oEmbed Block",
         help_text="The URL of the source",
         icon="media",
     )
-    # linklist_block = LinklistBlock()
-    table_block = TableBlock()
-    html_block = RawHTMLBlock()
-    submenu_block = SubmenuBlock()
-    eventlist_block = EventlistBlock()
+    heading_block = HeadingBlock()
+
+
+#    eventlist_block = EventlistBlock()
 
 
 class BodyStreamBlock(BaseStreamBlock):
