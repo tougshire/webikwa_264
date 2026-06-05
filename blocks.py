@@ -135,7 +135,9 @@ class EventsBlock(StructBlock):
         except (AttributeError, KeyError):
             return 1
 
-    calendar_tags = CharBlock(help_text="If filled, only show events with these tags")
+    calendar_tags = CharBlock(
+        required=False, help_text="If filled, only show events with these tags"
+    )
 
     lead_pri_1 = IntegerBlock(
         label="Pri 1 Lead Days",
@@ -306,6 +308,12 @@ class SummaryBlock(StaticBlock):
         template = "webikwa_264/blocks/summary_block.html"
 
 
+class SubmenuBlock(StaticBlock):
+    class Meta:
+        admin_text = "Places a submenu in this location"
+        template = "webikwa_264/blocks/submenu_block.html"
+
+
 # EventStructValue, EventBlock, EventListBlock are depreciated
 
 
@@ -450,7 +458,7 @@ class BaseStreamBlock(StreamBlock):
     # linklist_block = LinklistBlock()
     table_block = TableBlock()
     html_block = RawHTMLBlock()
-
+    submenu_block = SubmenuBlock()
     eventlist_block = EventlistBlock()
 
 
