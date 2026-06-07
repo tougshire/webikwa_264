@@ -216,7 +216,9 @@ class SidebarPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
         FieldPanel("location"),
-        InlinePanel("sidebar_page_zones"),
+        InlinePanel(
+            "sidebar_page_zones", help_text="zones are required. Create at least one"
+        ),
     ]
 
 
@@ -226,7 +228,7 @@ class SidebarPageZone(Orderable):
     )
     name = models.CharField(
         max_length=40,
-        help_text="The name used to identify this zone in the admin panel",
+        help_text='The name used to identify this zone in the admin panel. This is required but can be as simple as a number or letter (one zone can be named "1", the next "2", etc)',
     )
     title = models.CharField(
         max_length=40,
@@ -368,7 +370,9 @@ class PlacementPage(Page):
             [FieldPanel("continue_label"), FieldPanel("show_article_info")],
             heading="Article Display Options",
         ),
-        InlinePanel("page_zones"),
+        InlinePanel(
+            "page_zones", help_text="Page zones are required. Create at least one"
+        ),
         InlinePanel("submenu_items"),
     ]
 
@@ -386,12 +390,12 @@ class PageZone(Orderable):
     )
     name = models.CharField(
         max_length=40,
-        help_text="The name used to identify this zone in the admin panel",
+        help_text='The name used to identify this zone in the admin panel.  This is required, but can be as simple as a number or letter (one pagezone can be named "1", the next "2", etc.)',
     )
     title = models.CharField(
         max_length=40,
         blank=True,
-        help_text="The title, which is optional, to be displayed on the page",
+        help_text="The title, which is optional.  The title will be displayed on the page",
     )
 
     def __str__(self):
@@ -662,9 +666,6 @@ class ArticleSidebarPlacement(Orderable):
 
     def __str__(self):
         return f"{self.article}->{self.page}:{self.zone}"
-
-    class Meta:
-        ordering = ("sidebar_pagezone", "article")
 
     panels = [FieldPanel("sidebar_pagezone", widget=forms.Select), "expiration_date"]
 
@@ -1056,13 +1057,21 @@ class CalendarEvent(models.Model):
         null=True,
         help_text="Optionaly, an article to link to. If URL is filled in, the aricle's URL will be ignored. If description is filled in, the article's title will be ignored",
     )
+    page = models.ForeignKey(
+        Page,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text="Optionaly, a page to link to. Similar notes to Article.  If Article and Page are both selected, the article takes precedence.",
+        related_name="events_for_page",
+    )
     description = models.CharField(
         blank=True,
-        help_text="A description of the event.  If an article is chosen, this can be left blank to use the article's title",
+        help_text="A description of the event.  If left blank and an article or page is chosen, then the article or page's title will be used as the description.",
     )
     url = models.URLField(
         blank=True,
-        help_text="A URL for the event.  If an article is chosen, this can be left blank to use the article's URL.  If there is no article and this is blank, the description will not be a link",
+        help_text="A URL for the event.  If left blank and an article or page is chosen, then the event description will link to the article or page.  If left blank with no article or page, then the event descrtiption will not be a link.",
     )
 
     calendar_tags = models.CharField(
@@ -1074,7 +1083,7 @@ class CalendarEvent(models.Model):
     priority = models.IntegerField(
         choices=[(1, "1"), (2, "2"), (3, "3")],
         default=2,
-        help_text="The priorty of the event, with 1, 2, and 3 being high, normal, and low respectively",
+        help_text='The priorty of the event, with 1, 2, and 3 being high, normal, and low respectively.  This affects how early the event will be displayed on a list and the CSS class, which will be "eventpri" plus the number (ex: "eventpri2")',
     )
 
     def get_description(self):
@@ -1083,9 +1092,25 @@ class CalendarEvent(models.Model):
             try:
                 description = self.article.title
             except AttributeError:
-                pass
+                try:
+                    description = self.page.title
+                except AttributeError:
+                    pass
 
         return description
+
+    def get_url(self):
+        url = self.url
+        if not url:
+            try:
+                url = self.article.url
+            except AttributeError:
+                try:
+                    url = self.page.url
+                except AttributeError:
+                    pass
+
+        return url
 
     def __str__(self):
         return "{} {}".format(self.get_description(), self.date)

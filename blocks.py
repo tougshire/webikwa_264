@@ -202,11 +202,9 @@ class EventsBlock(StructBlock):
                 event_data = {
                     "time": event.time,
                     "description": event.get_description(),
+                    "url": event.get_url(),
+                    "priority": event.priority,
                 }
-                article = event.article
-                if article:
-                    if article.live:
-                        event_data["article"] = article
 
                 if date_key not in events_all_grouped:
                     events_all_grouped[date_key] = {"date": event.date, "events": []}
