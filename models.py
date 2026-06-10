@@ -399,7 +399,7 @@ class PageZone(Orderable):
     )
 
     def __str__(self):
-        return "{} {}".format(self.page, self.name)
+        return "{}: {}".format(self.page, self.name)
 
     class Meta:
         ordering = ["page", "sort_order"]
@@ -489,7 +489,7 @@ class ArticlePage(BaseArticlePage):
             heading="Article information",
         ),
         FieldPanel("summary"),
-        FieldPanel("body"),
+        FieldPanel("body", help_text="The body of the article, made up with blocks."),
         MultiFieldPanel(
             [
                 InlinePanel("article_images", label="Article images"),
@@ -1044,7 +1044,6 @@ def get_timezone():
     return settings.TIME_ZONE if hasattr(settings, "TIME_ZONE") else "Etc/UTC"
 
 
-@register_snippet
 class CalendarEvent(models.Model):
     date = models.DateField()
     time = models.TimeField(
@@ -1117,6 +1116,16 @@ class CalendarEvent(models.Model):
 
     class Meta:
         ordering = ("date", "time")
+
+
+class CalendarEventViewSet(SnippetViewSet):
+    model = CalendarEvent
+    add_to_admin_menu = True
+    menu_order = 300
+    icon = "calendar"
+
+
+register_snippet(CalendarEventViewSet)
 
 
 class SubMenuItem(Orderable):

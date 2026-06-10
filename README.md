@@ -67,24 +67,35 @@ These instructions are written with the assumption that you're starting a new pr
 - create a new placement page
   - using the 'add child page' link, create a new placement page
   - title it "Featured Articles"
+  - click "Add Page Zone"
+  - name the page zone "1".  You can leave the title blank
+  - add four more page zones and name them "2","3","4", and "5" 
   - publish the page
+- set the home page to redirect to the featured articles page
+  - go to pages -> home, the click on the edit icon (a pencil)
+  - click "choose a page"
+  - click the angle bracket to the right of "Home", and click "Featured Articles"
 
 ### Adding featured articles
 
 - Add articles 
-  - Do the following several times
+  - Do the following at least five times
     - Click "Articles" in the sidebar
     - Click "+ Add Article"
     - Give the article a title, for example "Test Article 1"
+    - Give the article a summary, for example "This is my first test article"
+    - Click on body and add blocks to the body
+      - Click the plus sign under "The body of the article"
+        - If this is the first time through:
+          - add a summary block
+          - below the summary block, add a markdown block.  
+          - In the markdown block, type:
+              Here are some details about my first test article. 
+        - For articles other than the first, experiment with different blocks
     - Place the article in the "Featured Articles" page
       - Click "Add Article Placement"
-      - Under "Page", choose "Featured Articles" 
-    - Add some text in the summary section
-    - Add some content to the body
-      - Click the plus sign under "The body of the article"
-      - Click "Markdown Block"
-      - Add some markdown
-      - Experiment with other types of blocks as desired, 
+      - If this is the first article, place it in Featured Articles 1.  
+      - Place other articles in other zones.  Use all zones and make some zones have more than one article
     - Publish the article
 
 ### Adding sidebar articles

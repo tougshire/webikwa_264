@@ -1,4 +1,5 @@
 import datetime
+import html
 
 from django import forms
 from django.forms import widgets
@@ -266,6 +267,12 @@ class ImageBlock(StructBlock):
     class Meta:
         icon = "image"
         template = "webikwa_264/blocks/image_block.html"
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context=parent_context)
+        context["alt_escaped"] = html.escape(value.get("alt"))
+
+        return context
 
 
 class ExternalImageBlock(StructBlock):
