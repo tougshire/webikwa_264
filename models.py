@@ -458,7 +458,7 @@ class ArticlePage(BaseArticlePage):
     date = models.DateField("Post date", default=datetime.date.today)
     summary = MarkdownField(
         blank=True,
-        help_text="A summary, im markdown, to be displayed instead of the body for index views.  There is no hard limit on the length but the intention is for this is that it be brief",
+        help_text="A summary, in markdown, to be displayed instead of the body for index views.  There is no hard limit on the length but the intention is for this is that it be brief.  The summary can also be included in the body with a summary block",
     )
 
     authors = ParentalManyToManyField("webikwa_264.Author", blank=True)
@@ -489,7 +489,12 @@ class ArticlePage(BaseArticlePage):
             heading="Article information",
         ),
         FieldPanel("summary"),
-        FieldPanel("body", help_text="The body of the article, made up with blocks."),
+        MultiFieldPanel(
+            [
+                FieldPanel("body", help_text="The body of the article"),
+            ],
+            help_text="Add blocks to the body",
+        ),
         MultiFieldPanel(
             [
                 InlinePanel("article_images", label="Article images"),
@@ -502,6 +507,7 @@ class ArticlePage(BaseArticlePage):
                 PlacementPageListPanel(),
             ],
             heading="Placements",
+            help_text="If you are using placement pages, place the article in the appropriate page and zone",
         ),
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
     ]

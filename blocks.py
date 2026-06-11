@@ -249,8 +249,10 @@ class EventsBlock(StructBlock):
 
 
 class DocumentBlock(StructBlock):
-    document = (DocumentChooserBlock(required=True),)
     title = CharBlock(required=True)
+    document = DocumentChooserBlock(required=True)
+    width = CharBlock(default="90%", max_length=10, help_text="The width in css")
+    height = CharBlock(default="1600px", max_length=10, help_text="The height in css")
 
     class Meta:
         icon = "doc-full"
@@ -448,7 +450,7 @@ class BaseStreamBlock(StreamBlock):
     html_block = RawHTMLBlock()
     image_block = ImageBlock()
     external_image_block = ExternalImageBlock()
-    document_block = DocumentChooserBlock()
+    document_block = DocumentBlock()
     paragraph_block = RichTextBlock(
         icon="pilcrow", features=["link", "bold", "italic", "ol", "ul"]
     )
