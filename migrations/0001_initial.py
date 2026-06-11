@@ -12,350 +12,1487 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),
-        ('wagtailcore', '0097_baselogentry_uuid_action_timestamp_indexes'),
-        ('wagtailimages', '0027_image_description'),
+        (
+            "taggit",
+            "0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx",
+        ),
+        ("wagtailcore", "0096_referenceindex_referenceindex_source_object_and_more"),
+        ("wagtailimages", "0027_image_description"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ArticleIndexPage',
+            name="ArticleIndexPage",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('intro', wagtail.fields.RichTextField(blank=True)),
-                ('show_pagetitle', models.BooleanField(default=True, help_text='If the page title should be shown')),
-                ('show_article_info', models.IntegerField(choices=[(0, 'hide all'), (7, 'show all'), (3, 'show authors and date'), (1, 'show authors'), (2, 'show date'), (4, 'show tags')], default=7, help_text='Article information to be shown ')),
-                ('continue_label', models.CharField(blank=True, default='continue reading', help_text='The text to display in the "continue reading" link.  Blank to hide link', max_length=25, verbose_name='continue reading label')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                ("intro", wagtail.fields.RichTextField(blank=True)),
+                (
+                    "show_pagetitle",
+                    models.BooleanField(
+                        default=True, help_text="If the page title should be shown"
+                    ),
+                ),
+                (
+                    "show_article_info",
+                    models.IntegerField(
+                        choices=[
+                            (0, "hide all"),
+                            (7, "show all"),
+                            (3, "show authors and date"),
+                            (1, "show authors"),
+                            (2, "show date"),
+                            (4, "show tags"),
+                        ],
+                        default=7,
+                        help_text="Article information to be shown ",
+                    ),
+                ),
+                (
+                    "continue_label",
+                    models.CharField(
+                        blank=True,
+                        default="continue reading",
+                        help_text='The text to display in the "continue reading" link.  Blank to hide link',
+                        max_length=25,
+                        verbose_name="continue reading label",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('wagtailcore.page',),
+            bases=("wagtailcore.page",),
         ),
         migrations.CreateModel(
-            name='BaseArticlePage',
+            name="BaseArticlePage",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('body', wagtail.fields.StreamField([('summary_block', 0), ('markdown_block', 1), ('html_block', 2), ('image_block', 7), ('external_image_block', 9), ('document_block', 10), ('paragraph_block', 11), ('quote_block', 12), ('events_block', 20), ('linklist_block', 23), ('table_block', 24), ('submenu_block', 25), ('embed_block', 26), ('heading_block', 29)], blank=True, block_lookup={0: ('webikwa_264.blocks.SummaryBlock', (), {}), 1: ('wagtailmarkdown.blocks.MarkdownBlock', (), {'icon': 'code'}), 2: ('wagtail.blocks.RawHTMLBlock', (), {}), 3: ('wagtail.images.blocks.ImageChooserBlock', (), {'required': True}), 4: ('wagtail.blocks.CharBlock', (), {'required': False}), 5: ('wagtail.blocks.CharBlock', (), {'required': True}), 6: ('wagtail.blocks.URLBlock', (), {'required': False}), 7: ('wagtail.blocks.StructBlock', [[('image', 3), ('caption', 4), ('attribution', 4), ('alt', 5), ('link', 6)]], {}), 8: ('wagtail.blocks.URLBlock', (), {'required': True}), 9: ('wagtail.blocks.StructBlock', [[('url', 8), ('caption', 4), ('attribution', 4), ('alt', 5), ('link', 6)]], {}), 10: ('wagtail.documents.blocks.DocumentChooserBlock', (), {}), 11: ('wagtail.blocks.RichTextBlock', (), {'features': ['link', 'bold', 'italic', 'ol', 'ul'], 'icon': 'pilcrow'}), 12: ('wagtail.blocks.BlockQuoteBlock', (), {}), 13: ('wagtail.blocks.CharBlock', (), {'help_text': 'If filled, only show events with these tags', 'required': False}), 14: ('wagtail.blocks.IntegerBlock', (), {'default': 180, 'help_text': 'Amount of days before the event to show priority 1 events on a list', 'label': 'Pri 1 Lead Days'}), 15: ('wagtail.blocks.IntegerBlock', (), {'default': 90, 'help_text': 'Amount of days before the event to show priority 2 events on a list', 'label': 'Pri 2 Lead Days'}), 16: ('wagtail.blocks.IntegerBlock', (), {'default': 45, 'help_text': 'Amount of days before the event to show priority 3 events on a list', 'label': 'Pri 3 Lead Days'}), 17: ('wagtail.blocks.IntegerBlock', (), {'default': 1, 'help_text': 'Amount of days after the event to show priority 1 events on a list', 'label': 'Pri 1 follow Days'}), 18: ('wagtail.blocks.IntegerBlock', (), {'default': 1, 'help_text': 'Amount of days after the event to show priority 2 events on a list', 'label': 'Pri 2 follow Days'}), 19: ('wagtail.blocks.IntegerBlock', (), {'default': 1, 'help_text': 'Amount of days after the event to show priority 3 events on a list', 'label': 'Pri 3 follow Days'}), 20: ('wagtail.blocks.StructBlock', [[('calendar_tags', 13), ('lead_pri_1', 14), ('lead_pri_2', 15), ('lead_pri_3', 16), ('follow_pri_1', 17), ('follow_pri_2', 18), ('follow_pri_3', 19)]], {}), 21: ('wagtail.blocks.ListBlock', (), {'child_block': webikwa_264.blocks.LinkBlock}), 22: ('wagtail.blocks.CharBlock', ('link item class',), {'default': 'linkitem', 'help_text': 'css class to apply to each item'}), 23: ('wagtail.blocks.StructBlock', [[('link_list', 21), ('linkitem_class', 22)]], {}), 24: ('wagtail.contrib.table_block.blocks.TableBlock', (), {}), 25: ('webikwa_264.blocks.SubmenuBlock', (), {}), 26: ('wagtail.embeds.blocks.EmbedBlock', (), {'help_text': 'The URL of the source', 'icon': 'media', 'label': 'oEmbed Block'}), 27: ('wagtail.blocks.CharBlock', (), {'form_classname': 'title', 'required': True}), 28: ('wagtail.blocks.ChoiceBlock', [], {'blank': True, 'choices': [('', 'Select a heading size'), ('h2', 'H2'), ('h3', 'H3'), ('h4', 'H4'), ('h5', 'H5'), ('h6', 'H6')], 'required': False}), 29: ('wagtail.blocks.StructBlock', [[('heading_text', 27), ('size', 28)]], {})}, help_text='The body of the article')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "body",
+                    wagtail.fields.StreamField(
+                        [
+                            ("summary_block", 0),
+                            ("markdown_block", 1),
+                            ("html_block", 2),
+                            ("image_block", 7),
+                            ("external_image_block", 9),
+                            ("document_block", 10),
+                            ("paragraph_block", 11),
+                            ("quote_block", 12),
+                            ("events_block", 20),
+                            ("linklist_block", 23),
+                            ("table_block", 24),
+                            ("submenu_block", 25),
+                            ("embed_block", 26),
+                            ("heading_block", 29),
+                        ],
+                        blank=True,
+                        block_lookup={
+                            0: ("webikwa_264.blocks.SummaryBlock", (), {}),
+                            1: (
+                                "wagtailmarkdown.blocks.MarkdownBlock",
+                                (),
+                                {"icon": "code"},
+                            ),
+                            2: ("wagtail.blocks.RawHTMLBlock", (), {}),
+                            3: (
+                                "wagtail.images.blocks.ImageChooserBlock",
+                                (),
+                                {"required": True},
+                            ),
+                            4: ("wagtail.blocks.CharBlock", (), {"required": False}),
+                            5: ("wagtail.blocks.CharBlock", (), {"required": True}),
+                            6: ("wagtail.blocks.URLBlock", (), {"required": False}),
+                            7: (
+                                "wagtail.blocks.StructBlock",
+                                [
+                                    [
+                                        ("image", 3),
+                                        ("caption", 4),
+                                        ("attribution", 4),
+                                        ("alt", 5),
+                                        ("link", 6),
+                                    ]
+                                ],
+                                {},
+                            ),
+                            8: ("wagtail.blocks.URLBlock", (), {"required": True}),
+                            9: (
+                                "wagtail.blocks.StructBlock",
+                                [
+                                    [
+                                        ("url", 8),
+                                        ("caption", 4),
+                                        ("attribution", 4),
+                                        ("alt", 5),
+                                        ("link", 6),
+                                    ]
+                                ],
+                                {},
+                            ),
+                            10: (
+                                "wagtail.documents.blocks.DocumentChooserBlock",
+                                (),
+                                {},
+                            ),
+                            11: (
+                                "wagtail.blocks.RichTextBlock",
+                                (),
+                                {
+                                    "features": ["link", "bold", "italic", "ol", "ul"],
+                                    "icon": "pilcrow",
+                                },
+                            ),
+                            12: ("wagtail.blocks.BlockQuoteBlock", (), {}),
+                            13: (
+                                "wagtail.blocks.CharBlock",
+                                (),
+                                {
+                                    "help_text": "If filled, only show events with these tags",
+                                    "required": False,
+                                },
+                            ),
+                            14: (
+                                "wagtail.blocks.IntegerBlock",
+                                (),
+                                {
+                                    "default": 180,
+                                    "help_text": "Amount of days before the event to show priority 1 events on a list",
+                                    "label": "Pri 1 Lead Days",
+                                },
+                            ),
+                            15: (
+                                "wagtail.blocks.IntegerBlock",
+                                (),
+                                {
+                                    "default": 90,
+                                    "help_text": "Amount of days before the event to show priority 2 events on a list",
+                                    "label": "Pri 2 Lead Days",
+                                },
+                            ),
+                            16: (
+                                "wagtail.blocks.IntegerBlock",
+                                (),
+                                {
+                                    "default": 45,
+                                    "help_text": "Amount of days before the event to show priority 3 events on a list",
+                                    "label": "Pri 3 Lead Days",
+                                },
+                            ),
+                            17: (
+                                "wagtail.blocks.IntegerBlock",
+                                (),
+                                {
+                                    "default": 1,
+                                    "help_text": "Amount of days after the event to show priority 1 events on a list",
+                                    "label": "Pri 1 follow Days",
+                                },
+                            ),
+                            18: (
+                                "wagtail.blocks.IntegerBlock",
+                                (),
+                                {
+                                    "default": 1,
+                                    "help_text": "Amount of days after the event to show priority 2 events on a list",
+                                    "label": "Pri 2 follow Days",
+                                },
+                            ),
+                            19: (
+                                "wagtail.blocks.IntegerBlock",
+                                (),
+                                {
+                                    "default": 1,
+                                    "help_text": "Amount of days after the event to show priority 3 events on a list",
+                                    "label": "Pri 3 follow Days",
+                                },
+                            ),
+                            20: (
+                                "wagtail.blocks.StructBlock",
+                                [
+                                    [
+                                        ("calendar_tags", 13),
+                                        ("lead_pri_1", 14),
+                                        ("lead_pri_2", 15),
+                                        ("lead_pri_3", 16),
+                                        ("follow_pri_1", 17),
+                                        ("follow_pri_2", 18),
+                                        ("follow_pri_3", 19),
+                                    ]
+                                ],
+                                {},
+                            ),
+                            21: (
+                                "wagtail.blocks.ListBlock",
+                                (),
+                                {"child_block": webikwa_264.blocks.LinkBlock},
+                            ),
+                            22: (
+                                "wagtail.blocks.CharBlock",
+                                ("link item class",),
+                                {
+                                    "default": "linkitem",
+                                    "help_text": "css class to apply to each item",
+                                },
+                            ),
+                            23: (
+                                "wagtail.blocks.StructBlock",
+                                [[("link_list", 21), ("linkitem_class", 22)]],
+                                {},
+                            ),
+                            24: (
+                                "wagtail.contrib.table_block.blocks.TableBlock",
+                                (),
+                                {},
+                            ),
+                            25: ("webikwa_264.blocks.SubmenuBlock", (), {}),
+                            26: (
+                                "wagtail.embeds.blocks.EmbedBlock",
+                                (),
+                                {
+                                    "help_text": "The URL of the source",
+                                    "icon": "media",
+                                    "label": "oEmbed Block",
+                                },
+                            ),
+                            27: (
+                                "wagtail.blocks.CharBlock",
+                                (),
+                                {"form_classname": "title", "required": True},
+                            ),
+                            28: (
+                                "wagtail.blocks.ChoiceBlock",
+                                [],
+                                {
+                                    "blank": True,
+                                    "choices": [
+                                        ("", "Select a heading size"),
+                                        ("h2", "H2"),
+                                        ("h3", "H3"),
+                                        ("h4", "H4"),
+                                        ("h5", "H5"),
+                                        ("h6", "H6"),
+                                    ],
+                                    "required": False,
+                                },
+                            ),
+                            29: (
+                                "wagtail.blocks.StructBlock",
+                                [[("heading_text", 27), ("size", 28)]],
+                                {},
+                            ),
+                        },
+                        help_text="The body of the article",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Base Article',
+                "verbose_name": "Base Article",
             },
-            bases=('wagtailcore.page',),
+            bases=("wagtailcore.page",),
         ),
         migrations.CreateModel(
-            name='FormPage',
+            name="FormPage",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('to_address', models.CharField(blank=True, help_text='Optional - form submissions will be emailed to these addresses. Separate multiple addresses by comma.', max_length=255, validators=[wagtail.contrib.forms.models.validate_to_address], verbose_name='to address')),
-                ('from_address', models.EmailField(blank=True, max_length=255, verbose_name='from address')),
-                ('subject', models.CharField(blank=True, max_length=255, verbose_name='subject')),
-                ('intro', wagtail.fields.RichTextField(blank=True, help_text="Enter something like a summary of the form's purpose or general instructions for filling it out. If your form contains honeypots, explain that the form has fields or a field which should be left blank")),
-                ('thank_you_text', wagtail.fields.RichTextField(blank=True, help_text='Enter text to be shown after the form is submitted')),
-                ('honeypot_field_names', models.CharField(blank=True, help_text='The name or comma-separated list of names for the field or fields to be left blank by humans in order to trap bots. The field(s) should be single-line required=False', max_length=255, verbose_name='honeypot')),
-                ('honeypot_error_message', models.CharField(blank=True, default='If you are a person, please read the notes and retry', help_text='The name or comma-separated list of names for the field or fields to be left blank by humans in order to trap bots. The field(s) should be single-line required=False', max_length=255, verbose_name='honeypot error message')),
-                ('honeypot_intro', wagtail.fields.RichTextField(blank=True, default='Note: This form has a field or fields which should be left unfilled. In order to trap automatic form fillers, these fields are not marked but a person should be able to figure out which those are', help_text='Explain to visitors that the form has a field or fields which humans should realize are to be left blank')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "to_address",
+                    models.CharField(
+                        blank=True,
+                        help_text="Optional - form submissions will be emailed to these addresses. Separate multiple addresses by comma.",
+                        max_length=255,
+                        validators=[wagtail.contrib.forms.models.validate_to_address],
+                        verbose_name="to address",
+                    ),
+                ),
+                (
+                    "from_address",
+                    models.EmailField(
+                        blank=True, max_length=255, verbose_name="from address"
+                    ),
+                ),
+                (
+                    "subject",
+                    models.CharField(
+                        blank=True, max_length=255, verbose_name="subject"
+                    ),
+                ),
+                (
+                    "intro",
+                    wagtail.fields.RichTextField(
+                        blank=True,
+                        help_text="Enter something like a summary of the form's purpose or general instructions for filling it out. If your form contains honeypots, explain that the form has fields or a field which should be left blank",
+                    ),
+                ),
+                (
+                    "thank_you_text",
+                    wagtail.fields.RichTextField(
+                        blank=True,
+                        help_text="Enter text to be shown after the form is submitted",
+                    ),
+                ),
+                (
+                    "honeypot_field_names",
+                    models.CharField(
+                        blank=True,
+                        help_text="The name or comma-separated list of names for the field or fields to be left blank by humans in order to trap bots. The field(s) should be single-line required=False",
+                        max_length=255,
+                        verbose_name="honeypot",
+                    ),
+                ),
+                (
+                    "honeypot_error_message",
+                    models.CharField(
+                        blank=True,
+                        default="If you are a person, please read the notes and retry",
+                        help_text="The name or comma-separated list of names for the field or fields to be left blank by humans in order to trap bots. The field(s) should be single-line required=False",
+                        max_length=255,
+                        verbose_name="honeypot error message",
+                    ),
+                ),
+                (
+                    "honeypot_intro",
+                    wagtail.fields.RichTextField(
+                        blank=True,
+                        default="Note: This form has a field or fields which should be left unfilled. In order to trap automatic form fillers, these fields are not marked but a person should be able to figure out which those are",
+                        help_text="Explain to visitors that the form has a field or fields which humans should realize are to be left blank",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=(wagtail.contrib.forms.models.FormMixin, 'wagtailcore.page', models.Model),
+            bases=(
+                wagtail.contrib.forms.models.FormMixin,
+                "wagtailcore.page",
+                models.Model,
+            ),
         ),
         migrations.CreateModel(
-            name='PlacementPage',
+            name="PlacementPage",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('show_pagetitle', models.BooleanField(default=True, help_text='If the page title should be shown')),
-                ('show_article_info', models.IntegerField(choices=[(0, 'hide all'), (7, 'show all'), (3, 'show authors and date'), (1, 'show authors'), (2, 'show date'), (4, 'show tags')], default=7)),
-                ('continue_label', models.CharField(blank=True, default='continue reading', help_text='The text to display in the "continue reading" link.  Blank to hide link', max_length=25, verbose_name='continue reading label')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "show_pagetitle",
+                    models.BooleanField(
+                        default=True, help_text="If the page title should be shown"
+                    ),
+                ),
+                (
+                    "show_article_info",
+                    models.IntegerField(
+                        choices=[
+                            (0, "hide all"),
+                            (7, "show all"),
+                            (3, "show authors and date"),
+                            (1, "show authors"),
+                            (2, "show date"),
+                            (4, "show tags"),
+                        ],
+                        default=7,
+                    ),
+                ),
+                (
+                    "continue_label",
+                    models.CharField(
+                        blank=True,
+                        default="continue reading",
+                        help_text='The text to display in the "continue reading" link.  Blank to hide link',
+                        max_length=25,
+                        verbose_name="continue reading label",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('wagtailcore.page',),
+            bases=("wagtailcore.page",),
         ),
         migrations.CreateModel(
-            name='SidebarPage',
+            name="SidebarPage",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('show_pagetitle', models.BooleanField(default=False, help_text='If the title of this sidebar should be shown')),
-                ('location', models.CharField(blank=True, choices=[('left', 'left'), ('right', 'right'), ('top', 'top'), ('bottom', 'bottom')], max_length=40, verbose_name='location')),
-                ('custom_css', models.TextField(blank=True, help_text='Custom css to be added to the html head section when this page is displayed. Zones will have class names in the format of "zone_1" where "1" is replaced by the zone number')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "show_pagetitle",
+                    models.BooleanField(
+                        default=False,
+                        help_text="If the title of this sidebar should be shown",
+                    ),
+                ),
+                (
+                    "location",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("left", "left"),
+                            ("right", "right"),
+                            ("top", "top"),
+                            ("bottom", "bottom"),
+                        ],
+                        max_length=40,
+                        verbose_name="location",
+                    ),
+                ),
+                (
+                    "custom_css",
+                    models.TextField(
+                        blank=True,
+                        help_text='Custom css to be added to the html head section when this page is displayed. Zones will have class names in the format of "zone_1" where "1" is replaced by the zone number',
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('wagtailcore.page',),
+            bases=("wagtailcore.page",),
         ),
         migrations.CreateModel(
-            name='ArticleCommentPage',
+            name="ArticleCommentPage",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('date', models.DateField(default=datetime.date.today, verbose_name='Post date')),
-                ('body', models.CharField(blank=True, help_text='The body of the comment', max_length=250)),
-                ('commenter_display_name', models.CharField(blank=True, help_text='The body of the comment', max_length=250)),
-                ('in_reply_to', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='webikwa_264.articlecommentpage')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "date",
+                    models.DateField(
+                        default=datetime.date.today, verbose_name="Post date"
+                    ),
+                ),
+                (
+                    "body",
+                    models.CharField(
+                        blank=True, help_text="The body of the comment", max_length=250
+                    ),
+                ),
+                (
+                    "commenter_display_name",
+                    models.CharField(
+                        blank=True, help_text="The body of the comment", max_length=250
+                    ),
+                ),
+                (
+                    "in_reply_to",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="webikwa_264.articlecommentpage",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Comment',
+                "verbose_name": "Comment",
             },
-            bases=('wagtailcore.page',),
+            bases=("wagtailcore.page",),
         ),
         migrations.CreateModel(
-            name='ArticlePage',
+            name="ArticlePage",
             fields=[
-                ('basearticlepage_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='webikwa_264.basearticlepage')),
-                ('date', models.DateField(default=datetime.date.today, verbose_name='Post date')),
-                ('summary', wagtailmarkdown.fields.MarkdownField(blank=True, help_text='A summary, im markdown, to be displayed instead of the body for index views.  There is no hard limit on the length but the intention is for this is that it be brief')),
-                ('show_info', models.IntegerField(choices=[(0, 'hide all'), (7, 'show all'), (3, 'show authors and date'), (1, 'show authors'), (2, 'show date'), (4, 'show tags')], default=7, help_text='Article information to be shown when viewing the article in a singular page')),
+                (
+                    "basearticlepage_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="webikwa_264.basearticlepage",
+                    ),
+                ),
+                (
+                    "date",
+                    models.DateField(
+                        default=datetime.date.today, verbose_name="Post date"
+                    ),
+                ),
+                (
+                    "summary",
+                    wagtailmarkdown.fields.MarkdownField(
+                        blank=True,
+                        help_text="A summary, im markdown, to be displayed instead of the body for index views.  There is no hard limit on the length but the intention is for this is that it be brief",
+                    ),
+                ),
+                (
+                    "show_info",
+                    models.IntegerField(
+                        choices=[
+                            (0, "hide all"),
+                            (7, "show all"),
+                            (3, "show authors and date"),
+                            (1, "show authors"),
+                            (2, "show date"),
+                            (4, "show tags"),
+                        ],
+                        default=7,
+                        help_text="Article information to be shown when viewing the article in a singular page",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Article',
-                'ordering': ('-last_published_at',),
+                "verbose_name": "Article",
+                "ordering": ("-last_published_at",),
             },
-            bases=('webikwa_264.basearticlepage',),
+            bases=("webikwa_264.basearticlepage",),
         ),
         migrations.CreateModel(
-            name='SidebarArticlePage',
+            name="SidebarArticlePage",
             fields=[
-                ('basearticlepage_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='webikwa_264.basearticlepage')),
-                ('date', models.DateField(default=datetime.date.today, verbose_name='Post date')),
-                ('show_title', models.BooleanField(default=True, help_text='If the title should be shown')),
+                (
+                    "basearticlepage_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="webikwa_264.basearticlepage",
+                    ),
+                ),
+                (
+                    "date",
+                    models.DateField(
+                        default=datetime.date.today, verbose_name="Post date"
+                    ),
+                ),
+                (
+                    "show_title",
+                    models.BooleanField(
+                        default=True, help_text="If the title should be shown"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('webikwa_264.basearticlepage',),
+            bases=("webikwa_264.basearticlepage",),
         ),
         migrations.CreateModel(
-            name='ArticlePageGalleryImage',
+            name="ArticlePageGalleryImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('alt_text', models.TextField(blank=True, max_length=250, verbose_name='alt text')),
-                ('image', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='wagtailimages.image')),
-                ('page', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='gallery_images', to='webikwa_264.basearticlepage')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "alt_text",
+                    models.TextField(
+                        blank=True, max_length=250, verbose_name="alt text"
+                    ),
+                ),
+                (
+                    "image",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="wagtailimages.image",
+                    ),
+                ),
+                (
+                    "page",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="gallery_images",
+                        to="webikwa_264.basearticlepage",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['sort_order'],
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='ArticlePageImage',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('alt_text', models.TextField(blank=True, max_length=250, verbose_name='alt text')),
-                ('display_with_summary', models.BooleanField(default=False, help_text='If this image should appear where the article summary is shown', verbose_name='with summary')),
-                ('display_before_body', models.BooleanField(default=False, help_text='If this image should appear before the body of the article', verbose_name='before body')),
-                ('display_after_body', models.BooleanField(default=False, help_text='If this image should appear after the body of the article', verbose_name='after_body')),
-                ('is_featured', models.BooleanField(default=False, help_text='If this image is the featured image to be used in social media links and similar contexts. Only one should be selected. ', verbose_name='is featured')),
-                ('image', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='wagtailimages.image')),
-                ('page', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='article_images', to='webikwa_264.basearticlepage')),
-            ],
-            options={
-                'ordering': ['sort_order'],
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='ArticleSingularPage',
-            fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('target_page', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailcore.page')),
-            ],
-            options={
-                'abstract': False,
-            },
-            bases=('wagtailcore.page',),
-        ),
-        migrations.CreateModel(
-            name='Author',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('author_image', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailimages.image')),
-            ],
-            options={
-                'verbose_name_plural': 'Authors',
-            },
-        ),
-        migrations.CreateModel(
-            name='FormField',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('clean_name', models.CharField(blank=True, default='', help_text='Safe name of the form field, the label converted to ascii_snake_case', max_length=255, verbose_name='name')),
-                ('label', models.CharField(help_text='The label of the form field', max_length=255, verbose_name='label')),
-                ('field_type', models.CharField(choices=[('singleline', 'Single line text'), ('multiline', 'Multi-line text'), ('email', 'Email'), ('number', 'Number'), ('url', 'URL'), ('checkbox', 'Checkbox'), ('checkboxes', 'Checkboxes'), ('dropdown', 'Drop down'), ('multiselect', 'Multiple select'), ('radio', 'Radio buttons'), ('date', 'Date'), ('datetime', 'Date/time'), ('hidden', 'Hidden field')], max_length=16, verbose_name='field type')),
-                ('required', models.BooleanField(default=True, verbose_name='required')),
-                ('choices', models.TextField(blank=True, help_text='Comma or new line separated list of choices. Only applicable in checkboxes, radio and dropdown.', verbose_name='choices')),
-                ('default_value', models.TextField(blank=True, help_text='Default value. Comma or new line separated values supported for checkboxes.', verbose_name='default value')),
-                ('help_text', models.CharField(blank=True, max_length=255, verbose_name='help text')),
-                ('page', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='form_fields', to='webikwa_264.formpage')),
-            ],
-            options={
-                'ordering': ['sort_order'],
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='PageZone',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('name', models.CharField(help_text='The name used to identify this zone in the admin panel.  This is required, but can be as simple as a number or letter (one pagezone can be named "1", the next "2", etc.)', max_length=40)),
-                ('title', models.CharField(blank=True, help_text='The title, which is optional.  The title will be displayed on the page', max_length=40)),
-                ('page', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='page_zones', to='webikwa_264.placementpage')),
-            ],
-            options={
-                'ordering': ['page', 'sort_order'],
-            },
-        ),
-        migrations.CreateModel(
-            name='RedirectPage',
-            fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('target_page', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailcore.page')),
-            ],
-            options={
-                'abstract': False,
-            },
-            bases=('wagtailcore.page',),
-        ),
-        migrations.CreateModel(
-            name='SidebarPageZone',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('name', models.CharField(help_text='The name used to identify this zone in the admin panel. This is required but can be as simple as a number or letter (one zone can be named "1", the next "2", etc)', max_length=40)),
-                ('title', models.CharField(blank=True, help_text='The title, which is optional, to be displayed on the page', max_length=40)),
-                ('sidebar_page', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='sidebar_page_zones', to='webikwa_264.sidebarpage')),
-            ],
-            options={
-                'ordering': ['sort_order'],
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='SiteSpecificImportantPages',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('article_index_page', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailcore.page')),
-                ('site', models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, to='wagtailcore.site')),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='SiteTemplateSettings',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('header_style', models.CharField(blank=True, default='50%', help_text='Inline styling for the header', max_length=255)),
-                ('show_banner_image', models.BooleanField(default=True, help_text='Show the chosen banner image.  If deselected, banner_text will be used instead of the image', verbose_name='show banner image')),
-                ('banner_image_style', models.CharField(blank=True, default='50%', help_text='Styling for the banner image or if a single value, A css value representing the width of the banner image. Include at least one semicolon (;) to indicate that this is a style, and not just a width value', max_length=255)),
-                ('banner_text', models.CharField(blank=True, default='webikwa_264', help_text='The alt text to be displayed if there is a banner image, or the text to be displayed if there is no image', max_length=80, verbose_name='banner_text')),
-                ('site_description', models.CharField(blank=True, default='New Wibewa Wagtail Blog', help_text='The site description to be displayed near the banner image or banner text', max_length=80, verbose_name='site description')),
-                ('show_topbar', models.BooleanField(default=False, help_text='If the top sidebar should be shown')),
-                ('show_leftbar', models.BooleanField(default=False, help_text='If the left sidebar should be shown')),
-                ('show_rightbar', models.BooleanField(default=False, help_text='If the right sidebar should be shown')),
-                ('show_bottombar', models.BooleanField(default=False, help_text='If the bottom sidebar should be shown')),
-                ('mainmenu_location', models.CharField(choices=[('none', 'None'), ('top', 'Top'), ('left', 'Left'), ('right', 'Right')], default='top', help_text='The location of the main menu', max_length=20, verbose_name='main menu location')),
-                ('theme_color', models.CharField(default='black', help_text='The theme color. This should match the base name of a css file in a static folder webikwa_264/css. Ex "blue" if there is a webikwa_264/css/blue.css', max_length=30, verbose_name='theme color')),
-                ('after_article', wagtailmarkdown.fields.MarkdownField(default='\n            <div id="after_article">\n                You can share this post on most social media by copying the URL and pasting it into a post.\n                <button type="button" id="copy_url_button">copy url</button>\n            </div>\n            <script>\n                var url_button = document.getElementById("copy_url_button")\n                url_button.addEventListener("click", function(e) {\n                    e.preventDefault()\n                    var url_input = document.createElement("input")\n                    var url_div = document.getElementById("copy_url_div")\n                    url_div.appendChild(url_input)\n                    url_input.value=window.location.href\n                    url_input.select()\n                    document.execCommand("copy")\n                    url_div.removeChild(url_input)\n                })\n            </script>\n        ', help_text='content to follow each article', verbose_name='after_article')),
-                ('footer_text', wagtailmarkdown.fields.MarkdownField(blank=True, default='Created wth Wagtail and webikwa_264', help_text='The footer in markdown', verbose_name='footer text')),
-                ('favicon', models.CharField(blank=True, help_text="The path to the favicon. If static, precede with 'static:' ex: static:images/favicon.ico", max_length=125, verbose_name='path to favicon')),
-                ('banner_image', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailimages.image')),
-                ('site', models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, to='wagtailcore.site')),
-            ],
-            options={
-                'verbose_name_plural': 'Template Settings',
-            },
-        ),
-        migrations.CreateModel(
-            name='SubMenuItem',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('label', models.CharField(help_text='The label to be displayed', max_length=20)),
-                ('target', models.ForeignKey(help_text='The target page', on_delete=django.db.models.deletion.CASCADE, to='wagtailcore.page')),
-                ('under_page', modelcluster.fields.ParentalKey(help_text='The page for which this submenu item should be displayed', on_delete=django.db.models.deletion.CASCADE, related_name='submenu_items', to='wagtailcore.page')),
-            ],
-            options={
-                'ordering': ['sort_order'],
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='CalendarEvent',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('time', models.TimeField(blank=True, help_text='The starting time of the event.  Optional', null=True)),
-                ('description', models.CharField(blank=True, help_text="A description of the event.  If left blank and an article or page is chosen, then the article or page's title will be used as the description.")),
-                ('url', models.URLField(blank=True, help_text='A URL for the event.  If left blank and an article or page is chosen, then the event description will link to the article or page.  If left blank with no article or page, then the event descrtiption will not be a link.')),
-                ('calendar_tags', models.CharField(blank=True, help_text='An optional comma-separated list of tags.  Calendar tags may be used by the displaying block to filter events.  These are not the same as tags used in articles', max_length=255)),
-                ('priority', models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3')], default=2, help_text='The priorty of the event, with 1, 2, and 3 being high, normal, and low respectively.  This affects how early the event will be displayed on a list and the CSS class, which will be "eventpri" plus the number (ex: "eventpri2")')),
-                ('page', models.ForeignKey(blank=True, help_text='Optionaly, a page to link to. Similar notes to Article.  If Article and Page are both selected, the article takes precedence.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events_for_page', to='wagtailcore.page')),
-                ('article', models.ForeignKey(blank=True, help_text="Optionaly, an article to link to. If URL is filled in, the aricle's URL will be ignored. If description is filled in, the article's title will be ignored", null=True, on_delete=django.db.models.deletion.SET_NULL, to='webikwa_264.articlepage')),
-            ],
-            options={
-                'ordering': ('date', 'time'),
+                "ordering": ["sort_order"],
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ArticlePlacement',
+            name="ArticlePageImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('show_body', models.BooleanField(default=False, help_text='Show the body instead the summary', verbose_name='show full body')),
-                ('boldness', models.CharField(choices=[('bold', 'Bold'), ('normal', 'Normal'), ('light', 'Light')], default='normal', help_text='A signal to the template about how to style this article on this page, from Very Bold to Very Light', max_length=40, verbose_name='boldness')),
-                ('expiration_date', models.DateField(blank=True, help_text='The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run', null=True, verbose_name='Expiration Date')),
-                ('pagezone', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='article_placements', to='webikwa_264.pagezone')),
-                ('article', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='article_placements', to='webikwa_264.articlepage')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "alt_text",
+                    models.TextField(
+                        blank=True, max_length=250, verbose_name="alt text"
+                    ),
+                ),
+                (
+                    "display_with_summary",
+                    models.BooleanField(
+                        default=False,
+                        help_text="If this image should appear where the article summary is shown",
+                        verbose_name="with summary",
+                    ),
+                ),
+                (
+                    "display_before_body",
+                    models.BooleanField(
+                        default=False,
+                        help_text="If this image should appear before the body of the article",
+                        verbose_name="before body",
+                    ),
+                ),
+                (
+                    "display_after_body",
+                    models.BooleanField(
+                        default=False,
+                        help_text="If this image should appear after the body of the article",
+                        verbose_name="after_body",
+                    ),
+                ),
+                (
+                    "is_featured",
+                    models.BooleanField(
+                        default=False,
+                        help_text="If this image is the featured image to be used in social media links and similar contexts. Only one should be selected. ",
+                        verbose_name="is featured",
+                    ),
+                ),
+                (
+                    "image",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="wagtailimages.image",
+                    ),
+                ),
+                (
+                    "page",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="article_images",
+                        to="webikwa_264.basearticlepage",
+                    ),
+                ),
             ],
             options={
-                'ordering': ('pagezone', 'article'),
+                "ordering": ["sort_order"],
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ArticlePageTag',
+            name="ArticleSingularPage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)s_items', to='taggit.tag')),
-                ('content_object', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='tagged_items', to='webikwa_264.articlepage')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "target_page",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="wagtailcore.page",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
+            },
+            bases=("wagtailcore.page",),
+        ),
+        migrations.CreateModel(
+            name="Author",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "author_image",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="wagtailimages.image",
+                    ),
+                ),
+            ],
+            options={
+                "verbose_name_plural": "Authors",
+            },
+        ),
+        migrations.CreateModel(
+            name="FormField",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "clean_name",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Safe name of the form field, the label converted to ascii_snake_case",
+                        max_length=255,
+                        verbose_name="name",
+                    ),
+                ),
+                (
+                    "label",
+                    models.CharField(
+                        help_text="The label of the form field",
+                        max_length=255,
+                        verbose_name="label",
+                    ),
+                ),
+                (
+                    "field_type",
+                    models.CharField(
+                        choices=[
+                            ("singleline", "Single line text"),
+                            ("multiline", "Multi-line text"),
+                            ("email", "Email"),
+                            ("number", "Number"),
+                            ("url", "URL"),
+                            ("checkbox", "Checkbox"),
+                            ("checkboxes", "Checkboxes"),
+                            ("dropdown", "Drop down"),
+                            ("multiselect", "Multiple select"),
+                            ("radio", "Radio buttons"),
+                            ("date", "Date"),
+                            ("datetime", "Date/time"),
+                            ("hidden", "Hidden field"),
+                        ],
+                        max_length=16,
+                        verbose_name="field type",
+                    ),
+                ),
+                (
+                    "required",
+                    models.BooleanField(default=True, verbose_name="required"),
+                ),
+                (
+                    "choices",
+                    models.TextField(
+                        blank=True,
+                        help_text="Comma or new line separated list of choices. Only applicable in checkboxes, radio and dropdown.",
+                        verbose_name="choices",
+                    ),
+                ),
+                (
+                    "default_value",
+                    models.TextField(
+                        blank=True,
+                        help_text="Default value. Comma or new line separated values supported for checkboxes.",
+                        verbose_name="default value",
+                    ),
+                ),
+                (
+                    "help_text",
+                    models.CharField(
+                        blank=True, max_length=255, verbose_name="help text"
+                    ),
+                ),
+                (
+                    "page",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="form_fields",
+                        to="webikwa_264.formpage",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ["sort_order"],
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
+            name="PageZone",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text='The name used to identify this zone in the admin panel.  This is required, but can be as simple as a number or letter (one pagezone can be named "1", the next "2", etc.)',
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        blank=True,
+                        help_text="The title, which is optional.  The title will be displayed on the page",
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "page",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="page_zones",
+                        to="webikwa_264.placementpage",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ["page", "sort_order"],
+            },
+        ),
+        migrations.CreateModel(
+            name="RedirectPage",
+            fields=[
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "target_page",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="wagtailcore.page",
+                    ),
+                ),
+            ],
+            options={
+                "abstract": False,
+            },
+            bases=("wagtailcore.page",),
+        ),
+        migrations.CreateModel(
+            name="SidebarPageZone",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text='The name used to identify this zone in the admin panel. This is required but can be as simple as a number or letter (one zone can be named "1", the next "2", etc)',
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        blank=True,
+                        help_text="The title, which is optional, to be displayed on the page",
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "sidebar_page",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sidebar_page_zones",
+                        to="webikwa_264.sidebarpage",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ["sort_order"],
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
+            name="SiteSpecificImportantPages",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "article_index_page",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "site",
+                    models.OneToOneField(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="wagtailcore.site",
+                    ),
+                ),
+            ],
+            options={
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
+            name="SiteTemplateSettings",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "header_style",
+                    models.CharField(
+                        blank=True,
+                        default="50%",
+                        help_text="Inline styling for the header",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "show_banner_image",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Show the chosen banner image.  If deselected, banner_text will be used instead of the image",
+                        verbose_name="show banner image",
+                    ),
+                ),
+                (
+                    "banner_image_style",
+                    models.CharField(
+                        blank=True,
+                        default="50%",
+                        help_text="Styling for the banner image or if a single value, A css value representing the width of the banner image. Include at least one semicolon (;) to indicate that this is a style, and not just a width value",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "banner_text",
+                    models.CharField(
+                        blank=True,
+                        default="webikwa_264",
+                        help_text="The alt text to be displayed if there is a banner image, or the text to be displayed if there is no image",
+                        max_length=80,
+                        verbose_name="banner_text",
+                    ),
+                ),
+                (
+                    "site_description",
+                    models.CharField(
+                        blank=True,
+                        default="New Wibewa Wagtail Blog",
+                        help_text="The site description to be displayed near the banner image or banner text",
+                        max_length=80,
+                        verbose_name="site description",
+                    ),
+                ),
+                (
+                    "show_topbar",
+                    models.BooleanField(
+                        default=False, help_text="If the top sidebar should be shown"
+                    ),
+                ),
+                (
+                    "show_leftbar",
+                    models.BooleanField(
+                        default=False, help_text="If the left sidebar should be shown"
+                    ),
+                ),
+                (
+                    "show_rightbar",
+                    models.BooleanField(
+                        default=False, help_text="If the right sidebar should be shown"
+                    ),
+                ),
+                (
+                    "show_bottombar",
+                    models.BooleanField(
+                        default=False, help_text="If the bottom sidebar should be shown"
+                    ),
+                ),
+                (
+                    "mainmenu_location",
+                    models.CharField(
+                        choices=[
+                            ("none", "None"),
+                            ("top", "Top"),
+                            ("left", "Left"),
+                            ("right", "Right"),
+                        ],
+                        default="top",
+                        help_text="The location of the main menu",
+                        max_length=20,
+                        verbose_name="main menu location",
+                    ),
+                ),
+                (
+                    "theme_color",
+                    models.CharField(
+                        default="black",
+                        help_text='The theme color. This should match the base name of a css file in a static folder webikwa_264/css. Ex "blue" if there is a webikwa_264/css/blue.css',
+                        max_length=30,
+                        verbose_name="theme color",
+                    ),
+                ),
+                (
+                    "after_article",
+                    wagtailmarkdown.fields.MarkdownField(
+                        default='\n            <div id="after_article">\n                You can share this post on most social media by copying the URL and pasting it into a post.\n                <button type="button" id="copy_url_button">copy url</button>\n            </div>\n            <script>\n                var url_button = document.getElementById("copy_url_button")\n                url_button.addEventListener("click", function(e) {\n                    e.preventDefault()\n                    var url_input = document.createElement("input")\n                    var url_div = document.getElementById("copy_url_div")\n                    url_div.appendChild(url_input)\n                    url_input.value=window.location.href\n                    url_input.select()\n                    document.execCommand("copy")\n                    url_div.removeChild(url_input)\n                })\n            </script>\n        ',
+                        help_text="content to follow each article",
+                        verbose_name="after_article",
+                    ),
+                ),
+                (
+                    "footer_text",
+                    wagtailmarkdown.fields.MarkdownField(
+                        blank=True,
+                        default="Created wth Wagtail and webikwa_264",
+                        help_text="The footer in markdown",
+                        verbose_name="footer text",
+                    ),
+                ),
+                (
+                    "favicon",
+                    models.CharField(
+                        blank=True,
+                        help_text="The path to the favicon. If static, precede with 'static:' ex: static:images/favicon.ico",
+                        max_length=125,
+                        verbose_name="path to favicon",
+                    ),
+                ),
+                (
+                    "banner_image",
+                    models.ForeignKey(
+                        blank=True,
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="wagtailimages.image",
+                    ),
+                ),
+                (
+                    "site",
+                    models.OneToOneField(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="wagtailcore.site",
+                    ),
+                ),
+            ],
+            options={
+                "verbose_name_plural": "Template Settings",
+            },
+        ),
+        migrations.CreateModel(
+            name="SubMenuItem",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "label",
+                    models.CharField(
+                        help_text="The label to be displayed", max_length=20
+                    ),
+                ),
+                (
+                    "target",
+                    models.ForeignKey(
+                        help_text="The target page",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "under_page",
+                    modelcluster.fields.ParentalKey(
+                        help_text="The page for which this submenu item should be displayed",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="submenu_items",
+                        to="wagtailcore.page",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ["sort_order"],
+                "abstract": False,
+            },
+        ),
+        migrations.CreateModel(
+            name="CalendarEvent",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                (
+                    "time",
+                    models.TimeField(
+                        blank=True,
+                        help_text="The starting time of the event.  Optional",
+                        null=True,
+                    ),
+                ),
+                (
+                    "description",
+                    models.CharField(
+                        blank=True,
+                        help_text="A description of the event.  If left blank and an article or page is chosen, then the article or page's title will be used as the description.",
+                    ),
+                ),
+                (
+                    "url",
+                    models.URLField(
+                        blank=True,
+                        help_text="A URL for the event.  If left blank and an article or page is chosen, then the event description will link to the article or page.  If left blank with no article or page, then the event descrtiption will not be a link.",
+                    ),
+                ),
+                (
+                    "calendar_tags",
+                    models.CharField(
+                        blank=True,
+                        help_text="An optional comma-separated list of tags.  Calendar tags may be used by the displaying block to filter events.  These are not the same as tags used in articles",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "priority",
+                    models.IntegerField(
+                        choices=[(1, "1"), (2, "2"), (3, "3")],
+                        default=2,
+                        help_text='The priorty of the event, with 1, 2, and 3 being high, normal, and low respectively.  This affects how early the event will be displayed on a list and the CSS class, which will be "eventpri" plus the number (ex: "eventpri2")',
+                    ),
+                ),
+                (
+                    "page",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optionaly, a page to link to. Similar notes to Article.  If Article and Page are both selected, the article takes precedence.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="events_for_page",
+                        to="wagtailcore.page",
+                    ),
+                ),
+                (
+                    "article",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optionaly, an article to link to. If URL is filled in, the aricle's URL will be ignored. If description is filled in, the article's title will be ignored",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="webikwa_264.articlepage",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ("date", "time"),
+            },
+        ),
+        migrations.CreateModel(
+            name="ArticlePlacement",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "show_body",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Show the body instead the summary",
+                        verbose_name="show full body",
+                    ),
+                ),
+                (
+                    "boldness",
+                    models.CharField(
+                        choices=[
+                            ("bold", "Bold"),
+                            ("normal", "Normal"),
+                            ("light", "Light"),
+                        ],
+                        default="normal",
+                        help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light",
+                        max_length=40,
+                        verbose_name="boldness",
+                    ),
+                ),
+                (
+                    "expiration_date",
+                    models.DateField(
+                        blank=True,
+                        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+                        null=True,
+                        verbose_name="Expiration Date",
+                    ),
+                ),
+                (
+                    "pagezone",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="article_placements",
+                        to="webikwa_264.pagezone",
+                    ),
+                ),
+                (
+                    "article",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="article_placements",
+                        to="webikwa_264.articlepage",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ("pagezone", "article"),
+            },
+        ),
+        migrations.CreateModel(
+            name="ArticlePageTag",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "tag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="%(app_label)s_%(class)s_items",
+                        to="taggit.tag",
+                    ),
+                ),
+                (
+                    "content_object",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tagged_items",
+                        to="webikwa_264.articlepage",
+                    ),
+                ),
+            ],
+            options={
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='articlepage',
-            name='authors',
-            field=modelcluster.fields.ParentalManyToManyField(blank=True, to='webikwa_264.author'),
+            model_name="articlepage",
+            name="authors",
+            field=modelcluster.fields.ParentalManyToManyField(
+                blank=True, to="webikwa_264.author"
+            ),
         ),
         migrations.AddField(
-            model_name='articlepage',
-            name='tags',
-            field=modelcluster.contrib.taggit.ClusterTaggableManager(blank=True, help_text='A comma-separated list of tags.', through='webikwa_264.ArticlePageTag', to='taggit.Tag', verbose_name='Tags'),
+            model_name="articlepage",
+            name="tags",
+            field=modelcluster.contrib.taggit.ClusterTaggableManager(
+                blank=True,
+                help_text="A comma-separated list of tags.",
+                through="webikwa_264.ArticlePageTag",
+                to="taggit.Tag",
+                verbose_name="Tags",
+            ),
         ),
         migrations.CreateModel(
-            name='ArticleSidebarPlacement',
+            name="ArticleSidebarPlacement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
-                ('expiration_date', models.DateField(blank=True, help_text='The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run', null=True, verbose_name='Expiration Date')),
-                ('sidebar_pagezone', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='article_sidebarplacements', to='webikwa_264.sidebarpagezone')),
-                ('article', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='article_sidebarplacements', to='webikwa_264.sidebararticlepage')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "sort_order",
+                    models.IntegerField(blank=True, editable=False, null=True),
+                ),
+                (
+                    "expiration_date",
+                    models.DateField(
+                        blank=True,
+                        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+                        null=True,
+                        verbose_name="Expiration Date",
+                    ),
+                ),
+                (
+                    "sidebar_pagezone",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="article_sidebarplacements",
+                        to="webikwa_264.sidebarpagezone",
+                    ),
+                ),
+                (
+                    "article",
+                    modelcluster.fields.ParentalKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="article_sidebarplacements",
+                        to="webikwa_264.sidebararticlepage",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['sort_order'],
-                'abstract': False,
+                "ordering": ["sort_order"],
+                "abstract": False,
             },
         ),
     ]
