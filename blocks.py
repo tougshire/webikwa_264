@@ -24,6 +24,7 @@ from wagtail.blocks import (
     URLBlock,
     StaticBlock,
     StructValue,
+    BlockGroup,
 )
 
 from wagtail.admin.panels import HelpPanel
@@ -444,27 +445,43 @@ class EventlistBlock(StructBlock):
         label = "Event List Block (depreciated = use EventsBlock and CalendarEvents"
 
 
+class WebikMarkdownBlock(StructBlock):
+    markdown = MarkdownBlock()
+    applyclass = CharBlock(
+        required=False,
+        help_text="Apply this CSS class to the block.  The block will be enclosed in a DIV element of this class",
+    )
+    applystyle = CharBlock(
+        required=False,
+        help_text="Apply this CSS style to the block.  The block will be enclosed in a DIV element with this style",
+    )
+
+    class Meta:
+        template = "webikwa_264/blocks/webik_markdown_block.html"
+
+
 class BaseStreamBlock(StreamBlock):
     summary_block = SummaryBlock()
-    markdown_block = MarkdownBlock(icon="code")
-    html_block = RawHTMLBlock()
+    webik_markdown_block = WebikMarkdownBlock(icon="code", label="Markdown Block")
     image_block = ImageBlock()
     external_image_block = ExternalImageBlock()
+    events_block = EventsBlock()
     document_block = DocumentBlock()
+    quote_block = BlockQuoteBlock()
+    linklist_block = LinklistBlock()
+    submenu_block = SubmenuBlock()
+    html_block = RawHTMLBlock()
     paragraph_block = RichTextBlock(
         icon="pilcrow", features=["link", "bold", "italic", "ol", "ul"]
     )
-    quote_block = BlockQuoteBlock()
-    events_block = EventsBlock()
-    linklist_block = LinklistBlock()
     table_block = TableBlock()
-    submenu_block = SubmenuBlock()
     embed_block = EmbedBlock(
         label="oEmbed Block",
         help_text="The URL of the source",
         icon="media",
     )
     heading_block = HeadingBlock()
+    markdown_block = MarkdownBlock(icon="code", label="legacy markdown block")
 
 
 class BodyStreamBlock(BaseStreamBlock):

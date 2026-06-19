@@ -253,6 +253,12 @@ class BaseArticlePage(Page):
         blank=True,
         use_json_field=True,
         help_text="The body of the article",
+        default=[
+            (
+                "webik_markdown_block",
+                {"markdown": "", "applyclass": "", "applystyle": ""},
+            )
+        ],
     )
     is_creatable = False
 
