@@ -10,6 +10,7 @@ import zoneinfo
 import markdown
 import nh3
 import requests
+
 from django import forms
 from django.conf import settings
 from django.db import OperationalError, models
@@ -236,6 +237,11 @@ class SidebarPageZone(Orderable):
         help_text="The title, which is optional, to be displayed on the page",
     )
 
+    def get_active_placements(self):
+        return self.article_sidebarplacements.filter(
+            expiration_date__gte=datetime.date.today()
+        ) | self.article_sidebarplacements.filter(expiration_date__isnull=True)
+
     def __str__(self):
         return "{} {}".format(self.sidebar_page, self.name)
 
@@ -403,6 +409,11 @@ class PageZone(Orderable):
         blank=True,
         help_text="The title, which is optional.  The title will be displayed on the page",
     )
+
+    def get_active_placements(self):
+        return self.article_placements.filter(
+            expiration_date__gte=datetime.date.today()
+        ) | self.article_placements.filter(expiration_date__isnull=True)
 
     def __str__(self):
         return "{}: {}".format(self.page, self.name)
@@ -635,7 +646,10 @@ class ArticlePlacementViewSet(SnippetViewSet):
     list_display = ["article", "pagezone", "expiration_date"]
     inspect_view_enabled = True
 
-    list_filter = {"pagezone": ["exact"], "expiration_date": ["lt"]}
+    list_filter = {
+        "pagezone": ["exact"],
+        "expiration_date": ["lt"],
+    }
 
 
 register_snippet(ArticlePlacementViewSet)
@@ -1078,6 +1092,7 @@ class CalendarEvent(models.Model):
     )
     description = models.CharField(
         blank=True,
+        max_length=255,
         help_text="A description of the event.  If left blank and an article or page is chosen, then the article or page's title will be used as the description.",
     )
     url = models.URLField(
