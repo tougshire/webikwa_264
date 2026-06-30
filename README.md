@@ -8,7 +8,7 @@ This project is in development and there may be breaking changes until this note
 
 ## Installation
 
-webikwa_264 requires webikwa_templates_264 and touglates. If you're using a different template app than webikwa_templates_264, you can substitute that app
+webikwa_264 requires webikwa_templates_264 or an alternative template app. If you're using a different template app than webikwa_templates_264, you can substitute that app
 
 These instructions are written with the assumption that you're starting a new project
 
@@ -16,7 +16,6 @@ These instructions are written with the assumption that you're starting a new pr
   - This will work if you stop after creating the superuser, but the rest of the tutorial covers features that might be useful 
 - pip install [wagtail-markdown](https://pypi.org/project/wagtail-markdown/)
 - pip install [nh3](https://pypi.org/project/nh3/)
-- git clone [https://github.com/tougshire/touglates](https://github.com/tougshire/touglates)
 - git clone [https://github.com/tougshire/webikwa_templates_264](https://github.com/tougshire/webikwa_templates_264)
 - git clone [https://github.com/tougshire/webikwa_264](https://github.com/tougshire/webikwa_264)
 - add the following to INSTALLED_APPS in settings/base.py:
