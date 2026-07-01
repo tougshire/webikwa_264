@@ -334,17 +334,10 @@ class TagListPanel(HelpPanel):
                     e.preventDefault()
                     el_targ = e.target
                     if(el_targ.tagName.toLowerCase() == "button") {
-                        el_temp = document.createElement("input")
-                        el_targ.parentNode.appendChild(el_temp,el_targ)
-                        el_temp.value = el_targ.dataset.slug
-                        el_temp.select()
-                        document.execCommand("copy")
-                        el_targ.parentNode.removeChild(el_temp)
-
-                        tags_input = document.getElementById("id_tags")
-                        tags_ul = tags_input.parentNode.querySelector("ul")
-                        tags_ul.dispatchEvent(new MouseEvent("click", { view: window, bubbles: true, cancelable: true } ))
-                        document.execCommand("paste")
+                        tagit_div = document.getElementById("id_tags").parentNode
+                        tagit_new = tagit_div.querySelector("li[class='tagit-new']").querySelector("input")
+                        tagit_new.parentNode.dispatchEvent(new MouseEvent("click", { view: window, bubbles: true, cancelable: true } ) )
+                        tagit_new.value=el_targ.dataset.slug
                     }
                 })
                 </script>
