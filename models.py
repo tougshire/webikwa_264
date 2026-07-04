@@ -872,26 +872,12 @@ class SiteTemplateSettings(BaseSiteSetting):
     )
     after_article = MarkdownField(
         "after_article",
-        default="""
-            <div id="after_article">
-                You can share this post on most social media by copying the URL and pasting it into a post.
-                <button type="button" id="copy_url_button">copy url</button>
-            </div>
-            <script>
-                var url_button = document.getElementById("copy_url_button")
-                url_button.addEventListener("click", function(e) {
-                    e.preventDefault()
-                    var url_input = document.createElement("input")
-                    var url_div = document.getElementById("copy_url_div")
-                    url_div.appendChild(url_input)
-                    url_input.value=window.location.href
-                    url_input.select()
-                    document.execCommand("copy")
-                    url_div.removeChild(url_input)
-                })
-            </script>
-        """,
-        help_text="content to follow each article",
+        help_text="content in Markdown to follow each article",
+    )
+    show_article_socialshare = models.IntegerField(
+        "show social share",
+        default=1,
+        help_text="Show a list of social share links. 0 = None.  1 = Primary 2 = Alternate, etc.. Number of options available depends on the template",
     )
     footer_text = MarkdownField(
         "footer text",
