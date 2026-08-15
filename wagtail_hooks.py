@@ -1,8 +1,9 @@
 from django.shortcuts import redirect
 
+from wagtail.admin.views.generic import chooser as chooser_views
+from wagtail.admin.viewsets.chooser import ChooserViewSet
 from wagtail.admin.viewsets.base import ViewSet
-from wagtail.admin.viewsets.pages import PageListingViewSet
-from .models import ArticlePage, ArticlePlacement, SidebarArticlePage, CalendarEvent
+from wagtail.admin.viewsets.pages import PageListingViewSet, PageViewSet
 from wagtail.admin.ui.tables import Column
 from wagtail.admin.panels import FieldPanel
 from wagtail.snippets.models import register_snippet
@@ -11,6 +12,8 @@ from taggit.models import Tag
 from django.templatetags.static import static
 from django.utils.html import format_html
 from wagtail import hooks
+
+from .models import ArticlePage, ArticlePlacement, SidebarArticlePage, CalendarEvent
 
 import django_filters
 
@@ -29,7 +32,6 @@ class ArticlePageFilterSet(PageListingViewSet.filterset_class):
         model = ArticlePage
         fields = ["tags", "article_placements__pagezone"]
 
-
 #
 class ArticlePageListingViewSet(PageListingViewSet):
     icon = "article"
@@ -42,9 +44,17 @@ class ArticlePageListingViewSet(PageListingViewSet):
         Column("get_placements", "Placements"),
     ]
     filterset_class = ArticlePageFilterSet
+    ordering = ["-last_published_at"]
 
 
 article_page_listing_viewset = ArticlePageListingViewSet("article_pages")
+
+class ArticlePageViewSet(PageViewSet):
+    columns = PageViewSet.columns + [
+        Column("slug", label="Slug", sort_key="slug"),
+    ]
+
+article_page_viewset = ArticlePageViewSet("article_pages")
 
 
 @hooks.register("register_admin_viewset")
@@ -109,3 +119,29 @@ def do_after_page_create(request, page):
 def do_after_page_edit(request, page):
     if isinstance(page, ArticlePage) or isinstance(page, SidebarArticlePage):
         return redirect("/admin/")
+
+@hooks.register("register_admin_viewset")
+def register_article_page_viewset():
+    return article_page_viewset
+
+
+class ArticleChooserView(chooser_views.ChooseView):
+    ordering = ["-last_published_at", "title"]
+
+class ArticlePageChooserViewSet(ChooserViewSet):
+    # The model can be specified as either the model class or an "app_label.model_name" string;
+    # using a string avoids circular imports when accessing the StreamField block class (see below)
+    model = "webikwa_264.ArticlePage"
+
+    choose_one_text = "Choose an Article"
+    choose_another_text = "Choose another Article"
+    edit_item_text = "Edit this Article"
+    choose_view_class = ArticleChooserView
+
+article_page_chooser_viewset = ArticlePageChooserViewSet("article_page_chooser")
+
+
+@hooks.register("register_admin_viewset")
+def register_article_page_chooser_viewset():
+    return article_page_chooser_viewset
+

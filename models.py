@@ -184,7 +184,7 @@ class ArticleIndexPage(Page):
         ArticlePages = ArticlePage.objects.live().order_by("-last_published_at")
         if tag:
             ArticlePages = ArticlePages.filter(tags__name__in=tag).order_by(
-                "last_published_at"
+                "-last_published_at"
             )
 
         context["articlepages"] = ArticlePages
@@ -877,7 +877,7 @@ class SiteTemplateSettings(BaseSiteSetting):
     show_article_socialshare = models.IntegerField(
         "show social share",
         default=1,
-        help_text="Show a list of social share links. 0 = None.  1 = Primary 2 = Alternate, etc.. Number of options available depends on the template",
+        help_text="Show a list of social share links. 0 = None, 1 = Primary, 2 = Alternate, 3 = Next Alternate.  Number of options available depends on the template",
     )
     footer_text = MarkdownField(
         "footer text",
