@@ -22,7 +22,6 @@ These instructions are written with the assumption that you're starting a new pr
   - "wagtail.contrib.settings",
   - "wagtailmarkdown",
   - "wagtail.contrib.table_block",
-  - "touglates",
   - "webikwa_templates_264",
   - "webikwa_264",
 - Add the following markdown setting to your base settings file:

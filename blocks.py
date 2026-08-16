@@ -449,7 +449,7 @@ class WebikMarkdownBlock(StructBlock):
     markdown = MarkdownBlock()
     applyclass = CharBlock(
         required=False,
-        help_text="Apply this CSS class to the block.  The block will be enclosed in a DIV element of this class",
+        help_text="Apply this CSS class to the block.  The block will be enclosed in a DIV element of this class. The common class 'visually-hidden' will hide the block visually but still allow it for screen readers",
     )
     applystyle = CharBlock(
         required=False,
