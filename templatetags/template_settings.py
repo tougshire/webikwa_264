@@ -30,6 +30,8 @@ def get_template_settings(context):
         "after_article",
         "footer_text",
         "favicon",
+        "extra_head_content",
+        "extra_header_content",
     }
     if not template_settings:
         template_settings = {}
