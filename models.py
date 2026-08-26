@@ -840,11 +840,6 @@ class SiteTemplateSettings(BaseSiteSetting):
         default="New Wibewa Wagtail Blog",
         help_text="The site description to be displayed near the banner image or banner text",
     )
-    extra_header_content = models.TextField(
-        "extra header content",
-        blank=True,
-        help_text="Extra content to be added below the site description. Be careful with this"
-    )
     show_topbar = models.BooleanField(
         default=False, help_text="If the top sidebar should be shown"
     )
@@ -901,10 +896,10 @@ class SiteTemplateSettings(BaseSiteSetting):
         blank=True,
         help_text="Content to be added to the head, such as meta tags.  Be Careful with this."
     )
-    extra_header_content = models.TextField(
-        "extra header content",
+    top_content = models.TextField(
+        "top content",
         blank=True,
-        help_text="Content to be added to the header, under the site description.  Be Careful with this."
+        help_text="Content to be added at the top of the body.  This is often the location for third party tools such as Mastodon verification tags or Google analysis code."
     )
     def __str__(self):
         return (
