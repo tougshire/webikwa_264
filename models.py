@@ -288,21 +288,21 @@ class BaseArticlePage(Page):
         return "-latest_revision_created_at"
 
 
-class PlacementPageListPanel(HelpPanel):
-    class BoundPanel(HelpPanel.BoundPanel):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            content = '<div class="help_placement_page_list"><h3>Available Placement Pages</h3>'
-            content = content + "<table><tr><th>page</th></tr>"
-            aplaces = PlacementPage.objects.all()
-            for page in aplaces:
-                content = content + format_html(
-                    "<tr><td>{}</td></tr>",
-                    page.slug,
-                )
-
-            content = content + "</table></div>"
-            self.content = content
+#class PlacementPageListPanel(HelpPanel):
+#    class BoundPanel(HelpPanel.BoundPanel):
+#        def __init__(self, **kwargs):
+#            super().__init__(**kwargs)
+#            content = '<div class="help_placement_page_list"><h3>Available Placement Pages</h3>'
+#            content = content + "<table><tr><th>page</th></tr>"
+#            aplaces = PlacementPage.objects.all()
+#            for page in aplaces:
+#                content = content + format_html(
+#                    "<tr><td>{}</td></tr>",
+#                    page.slug,
+#                )
+#
+#            content = content + "</table></div>"
+#            self.content = content
 
 
 class TagListPanel(HelpPanel):
@@ -492,6 +492,13 @@ class ArticlePage(BaseArticlePage):
     content_panels = Page.content_panels + [
         MultiFieldPanel(
             [
+                HelpPanel(content="Unless otherwise programmed to do so, articles don't appear on any page unless they are placed on a page. After saving, use the Article Placements menu item to place this article on a page or pages. Articles that are not placed can still be linked to, show up in searches, etc.. as long as they are published"),
+            ],
+            heading="Placements",
+            help_text="If you are using placement pages, place the article in the appropriate page and zone",
+        ),
+        MultiFieldPanel(
+            [
                 FieldPanel("date"),
                 FieldPanel("authors", widget=forms.CheckboxSelectMultiple),
                 FieldPanel("show_info"),
@@ -511,14 +518,7 @@ class ArticlePage(BaseArticlePage):
             ],
             heading="Images",
         ),
-        MultiFieldPanel(
-            [
-                InlinePanel("article_placements"),
-                PlacementPageListPanel(),
-            ],
-            heading="Placements",
-            help_text="If you are using placement pages, place the article in the appropriate page and zone",
-        ),
+
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
     ]
 
@@ -594,7 +594,7 @@ class ArticlePage(BaseArticlePage):
 
 
 class ArticlePlacement(models.Model):
-    article = ParentalKey(ArticlePage, related_name="article_placements")
+    article = models.ForeignKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
     pagezone = models.ForeignKey(
         PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
     )
@@ -626,26 +626,13 @@ class ArticlePlacement(models.Model):
         ordering = ("pagezone", "article")
 
     panels = [
-        FieldPanel("article", widget=forms.Select),
-        "pagezone",
+        FieldPanel("article"),
+        FieldPanel("pagezone"),
         "show_body",
         "boldness",
         "expiration_date",
     ]
 
-
-class ArticlePlacementViewSet(SnippetViewSet):
-    model = ArticlePlacement
-    list_display = ["article", "pagezone", "expiration_date"]
-    inspect_view_enabled = True
-
-    list_filter = {
-        "pagezone": ["exact"],
-        "expiration_date": ["lt"],
-    }
-
-
-register_snippet(ArticlePlacementViewSet)
 
 
 class SidebarArticlePage(BaseArticlePage):
@@ -659,12 +646,12 @@ class SidebarArticlePage(BaseArticlePage):
     content_panels = Page.content_panels + [
         FieldPanel("show_title"),
         FieldPanel("body"),
-        MultiFieldPanel(
-            [
-                InlinePanel("article_sidebarplacements"),
-            ],
-            heading="Placements",
-        ),
+#        MultiFieldPanel(
+#            [
+#                InlinePanel("article_sidebarplacements"),
+#            ],
+#            heading="Placements",
+#        ),
     ]
 
 
@@ -684,20 +671,9 @@ class ArticleSidebarPlacement(Orderable):
     )
 
     def __str__(self):
-        return f"{self.article}->{self.page}:{self.zone}"
+        return f"{self.article}->{self.sidebar_pagezone}"
 
     panels = [FieldPanel("sidebar_pagezone", widget=forms.Select), "expiration_date"]
-
-
-class ArticleSidebarPlacementViewSet(SnippetViewSet):
-    model = ArticleSidebarPlacement
-    list_display = ["article", "page", "zone", "expiration_date"]
-    inspect_view_enabled = True
-
-    list_filter = {"page": ["exact"], "expiration_date": ["lt"]}
-
-
-register_snippet(ArticleSidebarPlacementViewSet)
 
 
 class ArticlePageImage(Orderable):
@@ -1131,16 +1107,6 @@ class CalendarEvent(models.Model):
 
     class Meta:
         ordering = ("date", "time")
-
-
-class CalendarEventViewSet(SnippetViewSet):
-    model = CalendarEvent
-    add_to_admin_menu = True
-    menu_order = 300
-    icon = "calendar"
-
-
-register_snippet(CalendarEventViewSet)
 
 
 class SubMenuItem(Orderable):
