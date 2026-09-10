@@ -293,16 +293,18 @@ class PlacementPageListPanel(HelpPanel):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             print(dir(self.instance))
-            content = '<div class="help_placement_page_list"><h3>Placed on these page zones</h3>'
-            content = content + "<table><tr><th>page</th></tr>"
-            aplaces = ArticlePlacement.objects.filter(article=self.instance)
-            for placement in aplaces:
-                content = content + format_html(
-                    "<tr><td>{}</td></tr>",
-                    placement.pagezone,
-                )
+            content=""
+            if self.instance.id:
+                content = '<div class="help_placement_page_list"><h3>Placed on these page zones</h3>'
+                content = content + "<table><tr><th>page</th></tr>"
+                aplaces = ArticlePlacement.objects.filter(article=self.instance)
+                for placement in aplaces:
+                    content = content + format_html(
+                        "<tr><td>{}</td></tr>",
+                        placement.pagezone,
+                    )
 
-            content = content + "</table></div>"
+                content = content + "</table></div>"
             self.content = content
 
 
