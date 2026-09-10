@@ -288,21 +288,22 @@ class BaseArticlePage(Page):
         return "-latest_revision_created_at"
 
 
-#class PlacementPageListPanel(HelpPanel):
-#    class BoundPanel(HelpPanel.BoundPanel):
-#        def __init__(self, **kwargs):
-#            super().__init__(**kwargs)
-#            content = '<div class="help_placement_page_list"><h3>Available Placement Pages</h3>'
-#            content = content + "<table><tr><th>page</th></tr>"
-#            aplaces = PlacementPage.objects.all()
-#            for page in aplaces:
-#                content = content + format_html(
-#                    "<tr><td>{}</td></tr>",
-#                    page.slug,
-#                )
-#
-#            content = content + "</table></div>"
-#            self.content = content
+class PlacementPageListPanel(HelpPanel):
+    class BoundPanel(HelpPanel.BoundPanel):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            print(dir(self.instance))
+            content = '<div class="help_placement_page_list"><h3>Placed on these page zones</h3>'
+            content = content + "<table><tr><th>page</th></tr>"
+            aplaces = ArticlePlacement.objects.filter(article=self.instance)
+            for placement in aplaces:
+                content = content + format_html(
+                    "<tr><td>{}</td></tr>",
+                    placement.pagezone,
+                )
+
+            content = content + "</table></div>"
+            self.content = content
 
 
 class TagListPanel(HelpPanel):
@@ -487,12 +488,18 @@ class ArticlePage(BaseArticlePage):
         help_text="Article information to be shown when viewing the article in a singular page",
     )
 
+    custom_css = models.TextField(
+        blank=True,
+        help_text='Custom css to be added to the html head section when this article is displayed.',
+    )
+
     parent_page_types = ["ArticleIndexPage"]
 
     content_panels = Page.content_panels + [
         MultiFieldPanel(
             [
                 HelpPanel(content="Unless otherwise programmed to do so, articles don't appear on any page unless they are placed on a page. After saving, use the Article Placements menu item to place this article on a page or pages. Articles that are not placed can still be linked to, show up in searches, etc.. as long as they are published"),
+                PlacementPageListPanel(),
             ],
             heading="Placements",
             help_text="If you are using placement pages, place the article in the appropriate page and zone",
@@ -520,6 +527,7 @@ class ArticlePage(BaseArticlePage):
         ),
 
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
+        FieldPanel("custom_css")
     ]
 
     search_fields = Page.search_fields + [
@@ -646,12 +654,6 @@ class SidebarArticlePage(BaseArticlePage):
     content_panels = Page.content_panels + [
         FieldPanel("show_title"),
         FieldPanel("body"),
-#        MultiFieldPanel(
-#            [
-#                InlinePanel("article_sidebarplacements"),
-#            ],
-#            heading="Placements",
-#        ),
     ]
 
 
@@ -673,7 +675,11 @@ class ArticleSidebarPlacement(Orderable):
     def __str__(self):
         return f"{self.article}->{self.sidebar_pagezone}"
 
-    panels = [FieldPanel("sidebar_pagezone", widget=forms.Select), "expiration_date"]
+    panels = [
+        "article",
+        FieldPanel("sidebar_pagezone", widget=forms.Select),
+        "expiration_date",
+    ]
 
 
 class ArticlePageImage(Orderable):
