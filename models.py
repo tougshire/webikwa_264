@@ -854,6 +854,14 @@ class SiteTemplateSettings(BaseSiteSetting):
         default="black",
         help_text='The theme color. This should match the base name of a css file in a static folder webikwa_264/css. Ex "blue" if there is a webikwa_264/css/blue.css',
     )
+    default_featured_image = models.ForeignKey(
+        "wagtailimages.Image",
+        related_name="+",
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL,
+    )
     after_article = MarkdownField(
         "after_article",
         help_text="content in Markdown to follow each article",
