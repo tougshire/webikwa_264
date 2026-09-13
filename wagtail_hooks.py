@@ -12,8 +12,9 @@ from taggit.models import Tag
 from django.templatetags.static import static
 from django.utils.html import format_html
 from wagtail import hooks
+from wagtail.admin.filters import WagtailFilterSet
 
-from .models import ArticlePage, ArticlePlacement, ArticleSidebarPlacement,  SidebarArticlePage, CalendarEvent
+from .models import ArticlePage, ArticlePlacement, ArticleSidebarPlacement,  SidebarArticlePage, CalendarEvent, PageZone
 
 import django_filters
 
@@ -172,6 +173,25 @@ class ArticleSidebarPlacementViewSet(SnippetViewSet):
 
 
 register_snippet(ArticleSidebarPlacementViewSet)
+
+class PageZoneFilterSet(WagtailFilterSet):
+    article_placements__article = django_filters.ModelChoiceFilter(
+        queryset=ArticlePage.objects.order_by("-last_published_at")
+    )
+    class Meta:
+        model=PageZone
+        fields=["article_placements__article"]
+
+class PageZoneViewSet(SnippetViewSet):
+    model = PageZone 
+    list_display = ["page", 'name', "title", Column("get_article_listr", "Article")]
+    inspect_view_enabled = True
+    add_to_admin_menu = True
+    menu_order = 175
+    filterset_class = PageZoneFilterSet
+
+
+register_snippet(PageZoneViewSet)
 
 
 class CalendarEventViewSet(SnippetViewSet):

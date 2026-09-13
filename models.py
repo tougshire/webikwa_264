@@ -17,6 +17,7 @@ from django.db import OperationalError, models
 from django.db.models import Count
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe, strip_tags
+from django.urls import reverse
 from modelcluster.contrib.taggit import ClusterTaggableManager, TaggableManager
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from taggit.models import Tag, TaggedItemBase
@@ -391,7 +392,6 @@ class PlacementPage(Page):
 
         return context
 
-
 class PageZone(Orderable):
     page = ParentalKey(
         PlacementPage, on_delete=models.CASCADE, related_name="page_zones"
@@ -407,9 +407,20 @@ class PageZone(Orderable):
     )
 
     def get_active_placements(self):
-        return self.article_placements.filter(
+        placement_query = ( self.article_placements.filter(
             expiration_date__gte=datetime.date.today()
-        ) | self.article_placements.filter(expiration_date__isnull=True)
+        ) | self.article_placements.filter(expiration_date__isnull=True))
+        return placement_query
+
+    def get_article_listr(self):
+        article_listr = ""
+        placement_query = ( self.article_placements.filter(
+            expiration_date__gte=datetime.date.today()
+        ) | self.article_placements.filter(expiration_date__isnull=True))
+        for placement in placement_query:
+            article_listr = article_listr + '<a href="' + reverse("wagtailadmin_pages:edit", args=[placement.article.id] ) + '#panel-child-content-article_placements-section">' +  placement.article.slug + "</a><br/>"
+        return mark_safe(article_listr)
+
 
     def __str__(self):
         return "{}: {}".format(self.page, self.name)
@@ -500,14 +511,6 @@ class ArticlePage(BaseArticlePage):
     content_panels = Page.content_panels + [
         MultiFieldPanel(
             [
-                HelpPanel(content="Unless otherwise programmed to do so, articles don't appear on any page unless they are placed on a page. After saving, use the Article Placements menu item to place this article on a page or pages. Articles that are not placed can still be linked to, show up in searches, etc.. as long as they are published"),
-                PlacementPageListPanel(),
-            ],
-            heading="Placements",
-            help_text="If you are using placement pages, place the article in the appropriate page and zone",
-        ),
-        MultiFieldPanel(
-            [
                 FieldPanel("date"),
                 FieldPanel("authors", widget=forms.CheckboxSelectMultiple),
                 FieldPanel("show_info"),
@@ -529,7 +532,15 @@ class ArticlePage(BaseArticlePage):
         ),
 
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
-        FieldPanel("custom_css")
+        FieldPanel("custom_css"),
+        InlinePanel("article_placements"),
+        MultiFieldPanel(
+            [
+                InlinePanel("article_placements"),
+            ],
+            heading="Placements",
+            help_text="Place this article on a page or pages where you want this article to appear",
+        ),
     ]
 
     search_fields = Page.search_fields + [
@@ -604,7 +615,8 @@ class ArticlePage(BaseArticlePage):
 
 
 class ArticlePlacement(models.Model):
-    article = models.ForeignKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
+    #article = models.ForeignKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
+    article = ParentalKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
     pagezone = models.ForeignKey(
         PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
     )
