@@ -24,16 +24,16 @@ def register_icons(icons):
     return icons + ["webikwa_264/article.svg"]
 
 
-class ArticlePageFilterSet(PageListingViewSet.filterset_class):
+class ArticlePageViewSetFilterSet(WagtailFilterSet):
     tags = django_filters.ModelMultipleChoiceFilter(
         queryset=Tag.objects.all().order_by("name")
     )
+    queryset = ArticlePage.objects.order_by("-last_published_at")
 
     class Meta:
         model = ArticlePage
         fields = ["tags", "article_placements__pagezone"]
 
-#
 class ArticlePageListingViewSet(PageListingViewSet):
     icon = "article"
     menu_order = 100  # will put in 3rd place (000 being 1st, 100 2nd)
@@ -44,11 +44,16 @@ class ArticlePageListingViewSet(PageListingViewSet):
         Column("get_tags", "Tags"),
         Column("get_placements", "Placements"),
     ]
-    filterset_class = ArticlePageFilterSet
+    filterset_class = ArticlePageViewSetFilterSet
     ordering = ["-last_published_at"]
 
 
 article_page_listing_viewset = ArticlePageListingViewSet("article_pages")
+
+
+@hooks.register("register_admin_viewset")
+def register_article_page_listing_viewset():
+    return article_page_listing_viewset
 
 class ArticlePageViewSet(PageViewSet):
     columns = PageViewSet.columns + [
@@ -57,10 +62,6 @@ class ArticlePageViewSet(PageViewSet):
 
 article_page_viewset = ArticlePageViewSet("article_pages")
 
-
-@hooks.register("register_admin_viewset")
-def register_article_page_listing_viewset():
-    return article_page_listing_viewset
 
 
 class SidebarArticlePageListingViewSet(PageListingViewSet):
@@ -147,17 +148,30 @@ def register_article_page_chooser_viewset():
     return article_page_chooser_viewset
 
 
+class ArticlePlacementFilterSet(WagtailFilterSet):
+    article = django_filters.ModelChoiceFilter(
+        queryset=ArticlePage.objects.order_by("-last_published_at")
+    )
+    pagezone = django_filters.ModelChoiceFilter(
+        queryset=PageZone.objects.order_by("page", "sort_order")
+    )
+    class Meta:
+        model=ArticlePlacement
+        fields=["article", "pagezone", "expiration_date"]
+
 class ArticlePlacementViewSet(SnippetViewSet):
     model = ArticlePlacement
     add_to_admin_menu=True
     menu_order=120
     list_display = ["article", "pagezone", "expiration_date"]
     inspect_view_enabled = True
+    filterset_class = ArticlePlacementFilterSet
 
-    list_filter = {
-        "pagezone": ["exact"],
-        "expiration_date": ["lt"],
-    }
+#    list_filter = {
+#        "pagezone": ["exact"],
+#        "article": ["exact"],
+#        "expiration_date": ["lt"],
+#    }
 
 
 register_snippet(ArticlePlacementViewSet)
@@ -174,6 +188,7 @@ class ArticleSidebarPlacementViewSet(SnippetViewSet):
 
 register_snippet(ArticleSidebarPlacementViewSet)
 
+
 class PageZoneFilterSet(WagtailFilterSet):
     article_placements__article = django_filters.ModelChoiceFilter(
         queryset=ArticlePage.objects.order_by("-last_published_at")
@@ -189,9 +204,6 @@ class PageZoneViewSet(SnippetViewSet):
     add_to_admin_menu = True
     menu_order = 175
     filterset_class = PageZoneFilterSet
-
-
-register_snippet(PageZoneViewSet)
 
 
 class CalendarEventViewSet(SnippetViewSet):

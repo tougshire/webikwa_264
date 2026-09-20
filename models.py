@@ -21,6 +21,7 @@ from django.urls import reverse
 from modelcluster.contrib.taggit import ClusterTaggableManager, TaggableManager
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from taggit.models import Tag, TaggedItemBase
+from wagtail.admin.forms import WagtailAdminModelForm
 from wagtail.admin.panels import (
     FieldPanel,
     FieldRowPanel,
@@ -50,7 +51,6 @@ from wagtail.images.models import Image as WagtailImage
 from wagtail.models import Orderable, Page
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
-from wagtail.snippets.views.snippets import SnippetViewSet
 from wagtailmarkdown.fields import MarkdownField
 
 from .blocks import BodyStreamBlock
@@ -533,7 +533,6 @@ class ArticlePage(BaseArticlePage):
 
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
         FieldPanel("custom_css"),
-        InlinePanel("article_placements"),
         MultiFieldPanel(
             [
                 InlinePanel("article_placements"),
@@ -613,9 +612,14 @@ class ArticlePage(BaseArticlePage):
     def get_success_url(self):
         return "admin/article_pages"
 
+# Creating this form seems to be necessary because Article's order_by is otherwise overwritten when Wagtail reders the panel
+class ArticlePlacementForm(WagtailAdminModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+        self.fields["article"].queryset = ArticlePage.objects.order_by("-last_published_at")
 
 class ArticlePlacement(models.Model):
-    #article = models.ForeignKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
+
     article = ParentalKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
     pagezone = models.ForeignKey(
         PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
@@ -640,6 +644,7 @@ class ArticlePlacement(models.Model):
         null=True,
         help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
     )
+    base_form_class = ArticlePlacementForm
 
     def __str__(self):
         return f"{self.article}->{self.pagezone}"
@@ -648,7 +653,8 @@ class ArticlePlacement(models.Model):
         ordering = ("pagezone", "article")
 
     panels = [
-        FieldPanel("article"),
+        FieldPanel("article", widget=forms.Select),
+        #FieldPanel("article"),
         FieldPanel("pagezone"),
         "show_body",
         "boldness",
