@@ -1,4 +1,5 @@
 from django.shortcuts import redirect
+from django.conf import settings
 
 from wagtail.admin.views.generic import chooser as chooser_views
 from wagtail.admin.viewsets.chooser import ChooserViewSet
@@ -17,6 +18,9 @@ from wagtail.admin.filters import WagtailFilterSet
 from .models import ArticlePage, ArticlePlacement, ArticleSidebarPlacement,  SidebarArticlePage, CalendarEvent, PageZone
 
 import django_filters
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @hooks.register("register_icons")
@@ -98,10 +102,12 @@ register_snippet(TagsSnippetViewSet)
 
 @hooks.register("insert_global_admin_css")
 def global_admin_css():
-    return format_html(
-        '<link rel="stylesheet" href="{}">',
-        static("webikwa_264/admin/css/webikwa_264.css"),
-    )
+    css_string='<link rel="stylesheet" href="{}">'.format(static("webikwa_264/admin/css/webikwa_264.css"))
+    try:
+        css_string = css_string + "\n\n\n\n<link rel=\"stylesheet\" href=\"{}\"".format(static(settings.WEBIKWA["admin_custom_css"]))
+    except( AttributeError, KeyError):
+        logging.info("No custom admin stylesheet specified. If desired, refer to a custom admin stylesheet in settings.WEBEKAH[\"admin_custom_css\"")
+    return format_html(css_string)
 
 
 @hooks.register("insert_global_admin_js")
@@ -214,5 +220,6 @@ class CalendarEventViewSet(SnippetViewSet):
 
 
 register_snippet(CalendarEventViewSet)
+
 
 
