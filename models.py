@@ -210,10 +210,6 @@ class SidebarPage(Page):
             ("bottom", "bottom"),
         ),
     )
-    custom_css = models.TextField(
-        blank=True,
-        help_text='Custom css to be added to the html head section when this page is displayed. Zones will have class names in the format of "zone_1" where "1" is replaced by the zone number',
-    )
 
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
