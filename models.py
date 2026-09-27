@@ -1136,7 +1136,7 @@ class CalendarEvent(models.Model):
         return "{} {}".format(self.get_description(), self.date)
 
     class Meta:
-        ordering = ("-date", "time")
+        ordering = ("date", "time")
 
 
 class SubMenuItem(Orderable):
