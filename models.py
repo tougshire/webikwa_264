@@ -878,6 +878,7 @@ class SiteTemplateSettings(BaseSiteSetting):
     )
     after_article = MarkdownField(
         "after_article",
+        blank=True,
         help_text="content in Markdown to follow each article",
     )
     show_article_socialshare = models.IntegerField(
