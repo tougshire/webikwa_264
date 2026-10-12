@@ -14,14 +14,14 @@ import requests
 from django import forms
 from django.conf import settings
 from django.db import OperationalError, models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe, strip_tags
 from django.urls import reverse
 from modelcluster.contrib.taggit import ClusterTaggableManager, TaggableManager
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from taggit.models import Tag, TaggedItemBase
-from wagtail.admin.forms import WagtailAdminModelForm
+from wagtail.admin.forms import WagtailAdminModelForm, WagtailAdminPageForm
 from wagtail.admin.panels import (
     FieldPanel,
     FieldRowPanel,
@@ -84,23 +84,6 @@ def get_binary_components(input, len):
 
     return ret
 
-
-def get_sidebars_old(request):
-    sidebars = []
-    for sidebarpage in SidebarPage.objects.live().all():
-        sidebar = {"location": sidebarpage.location, "children": []}
-        for childpage in sidebarpage.get_children().specific().iterator():
-            child = {
-                "title": childpage.title,
-                "body": childpage.specific.body,
-                "context": childpage.specific.get_context(request),
-            }
-
-            sidebar["children"].append(child)
-
-        sidebars.append(sidebar)
-
-    return sidebars
 
 
 class RedirectPage(Page):
@@ -236,7 +219,7 @@ class SidebarPageZone(Orderable):
 
     def get_active_placements(self):
         return self.article_sidebarplacements.filter(
-            expiration_date__gte=datetime.date.today()
+            expiration_date__gte=timezone.localdate()
         ) | self.article_sidebarplacements.filter(expiration_date__isnull=True)
 
     def __str__(self):
@@ -285,26 +268,6 @@ class BaseArticlePage(Page):
         return "-latest_revision_created_at"
 
 
-class PlacementPageListPanel(HelpPanel):
-    class BoundPanel(HelpPanel.BoundPanel):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            print(dir(self.instance))
-            content=""
-            if self.instance.id:
-                content = '<div class="help_placement_page_list"><h3>Placed on these page zones</h3>'
-                content = content + "<table><tr><th>page</th></tr>"
-                aplaces = ArticlePlacement.objects.filter(article=self.instance)
-                for placement in aplaces:
-                    content = content + format_html(
-                        "<tr><td>{}</td></tr>",
-                        placement.pagezone,
-                    )
-
-                content = content + "</table></div>"
-            self.content = content
-
-
 class TagListPanel(HelpPanel):
     class BoundPanel(HelpPanel.BoundPanel):
         def __init__(self, **kwargs):
@@ -345,6 +308,13 @@ class TagListPanel(HelpPanel):
             )
             self.content = content
 
+class PlacementPageForm(WagtailAdminPageForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for form in self.formsets["articlepage_placements"].forms:
+            form.fields["article"].queryset = \
+                    ArticlePage.objects.live().order_by("-last_published_at")
+
 
 class PlacementPage(Page):
     show_pagetitle = models.BooleanField(
@@ -372,11 +342,18 @@ class PlacementPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("show_pagetitle"),
         MultiFieldPanel(
-            [FieldPanel("continue_label"), FieldPanel("show_article_info")],
+            [
+                FieldPanel("continue_label"), 
+                FieldPanel("show_article_info")
+            ],
             heading="Article Display Options",
         ),
         InlinePanel(
-            "page_zones", help_text="Page zones are required. Create at least one"
+            "articlepage_placements",
+            help_text="Articles to be placed on this page"
+        ),
+        InlinePanel(
+            "page_zones", help_text="Create page zones to customize certain aspects of how articles in that zone will be displayed"
         ),
         InlinePanel("submenu_items"),
     ]
@@ -386,7 +363,70 @@ class PlacementPage(Page):
 
         context["sidebars"] = get_sidebars(request)
 
+        zones = []
+        zone_index=0
+        make_new_zone=True
+        for placement in self.articlepage_placements.filter(
+            article__live=True
+        ).filter(
+            Q(expiration_date__isnull=True) |
+            Q(expiration_date__gt=timezone.localdate())
+        ):
+            if placement.zone_break == 1 or placement.zone_break == 3:
+                make_new_zone = True
+
+            if make_new_zone:
+                try:
+                    zone_source=self.page_zones.all()[ zone_index ]
+                except IndexError:
+                    try:
+                        zone_source = self.page_zones.last()
+                    except Exception as e:
+                        zone_source = None
+                        print("Error making zone: ", e)
+                        current_zone = {
+                            "title": "",
+                            "placements":[],
+                            "max_articles": 3,
+                        }
+
+                if zone_source is not None:
+                    current_zone = {
+                        "title": zone_source.title,
+                        "placements": [],
+                        "max_articles":  zone_source.max_articles,
+                    }
+                zones.append(current_zone)
+                placements_in_zone = 0
+                make_new_zone = False
+
+            zones[-1]["placements"].append(placement)
+            placements_in_zone = placements_in_zone + 1
+            if (
+                placements_in_zone >= zones[-1]["max_articles"] or
+                placement.zone_break > 1
+            ):
+                make_new_zone = True
+
+
+        context['zones'] = zones
+
         return context
+
+    def get_placements(self):
+        placement_list = []
+        for placement in self.articlepage_placements.all():
+            placement_line = f"{placement.article}"
+            if (
+                placement.expiration_date is not None
+                and placement.expiration_date < timezone.localdate()
+            ):
+                placement_line = placement_line + " (expired)"
+            placement_list.append(placement_line)
+        return placement_list
+
+    base_form_class = PlacementPageForm
+
 
 class PageZone(Orderable):
     page = ParentalKey(
@@ -401,21 +441,17 @@ class PageZone(Orderable):
         blank=True,
         help_text="The title, which is optional.  The title will be displayed on the page",
     )
+    max_articles = models.IntegerField(
+        "max articles",
+        default=3,
+        help_text="The maximum number of articles per zone"
+    )
 
-    def get_active_placements(self):
-        placement_query = ( self.article_placements.filter(
-            expiration_date__gte=datetime.date.today()
-        ) | self.article_placements.filter(expiration_date__isnull=True))
-        return placement_query
-
-    def get_article_listr(self):
-        article_listr = ""
-        placement_query = ( self.article_placements.filter(
-            expiration_date__gte=datetime.date.today()
-        ) | self.article_placements.filter(expiration_date__isnull=True))
-        for placement in placement_query:
-            article_listr = article_listr + '<a href="' + reverse("wagtailadmin_pages:edit", args=[placement.article.id] ) + '#panel-child-content-article_placements-section">' +  placement.article.slug + "</a><br/>"
-        return mark_safe(article_listr)
+#    def get_active_placements(self):
+#        placement_query = ( self.article_placements.filter(
+#            expiration_date__gte=timezone.localdate()
+#        ) | self.article_placements.filter(expiration_date__isnull=True))
+#        return placement_query
 
 
     def __str__(self):
@@ -529,13 +565,6 @@ class ArticlePage(BaseArticlePage):
 
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
         FieldPanel("custom_css"),
-        MultiFieldPanel(
-            [
-                InlinePanel("article_placements"),
-            ],
-            heading="Placements",
-            help_text="Place this article on a page or pages where you want this article to appear",
-        ),
     ]
 
     search_fields = Page.search_fields + [
@@ -553,11 +582,11 @@ class ArticlePage(BaseArticlePage):
 
     def get_placements(self):
         placement_list = []
-        for placement in self.article_placements.all():
-            placement_line = f"{placement.pagezone}"
+        for placement in self.articlepage_placements.all():
+            placement_line = f"{placement.page}"
             if (
                 placement.expiration_date is not None
-                and placement.expiration_date < datetime.date.today()
+                and placement.expiration_date < timezone.localdate()
             ):
                 placement_line = placement_line + " (expired)"
             placement_list.append(placement_line)
@@ -601,8 +630,6 @@ class ArticlePage(BaseArticlePage):
         except AttributeError:
             pass
 
-        context["test"] = "tpva5ic22"
-
         return context
 
     def get_success_url(self):
@@ -614,11 +641,19 @@ class ArticlePlacementForm(WagtailAdminModelForm):
         super().__init__( *args, **kwargs)
         self.fields["article"].queryset = ArticlePage.objects.order_by("-last_published_at")
 
-class ArticlePlacement(models.Model):
+# Creating this form seems to be necessary because Article's order_by is otherwise overwritten when Wagtail reders the panel
 
-    article = ParentalKey(ArticlePage,on_delete=models.CASCADE,  related_name="article_placements")
-    pagezone = models.ForeignKey(
-        PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
+class ArticlePagePlacement(Orderable):
+
+    page = ParentalKey(
+        PlacementPage,on_delete=models.CASCADE,
+        related_name="articlepage_placements"
+    )
+    article = models.ForeignKey(
+        ArticlePage,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="articlepage_placements"
     )
     show_body = models.BooleanField(
         "show full body", default=False, help_text="Show the body instead the summary"
@@ -640,24 +675,76 @@ class ArticlePlacement(models.Model):
         null=True,
         help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
     )
-    base_form_class = ArticlePlacementForm
+    zone_break = models.IntegerField(
+        "break before/after",
+        default=0,
+        choices=[(0, "None"),(1, "Before"),(2, "After"), (3, "Both")],
+        help_text="Place a zone-break before and/or after this article"
+    )
 
     def __str__(self):
-        return f"{self.article}->{self.pagezone}"
+        return f"{self.article}->{self.page}"
 
     class Meta:
-        ordering = ("pagezone", "article")
+        ordering = ("page", "sort_order", "article",)
 
     panels = [
-        FieldPanel("article", widget=forms.Select),
-        #FieldPanel("article"),
-        FieldPanel("pagezone"),
+        FieldPanel("article"),
+        FieldPanel("page"),
+        "zone_break",
         "show_body",
         "boldness",
         "expiration_date",
     ]
 
-
+#class ArticlePlacement(models.Model):
+#
+#    article = ParentalKey(
+#        ArticlePage,
+#        on_delete=models.CASCADE,
+#        related_name="article_placements"
+#    )
+#    pagezone = models.ForeignKey(
+#        PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
+#    )
+#    show_body = models.BooleanField(
+#        "show full body", default=False, help_text="Show the body instead the summary"
+#    )
+#    boldness = models.CharField(
+#        "boldness",
+#        max_length=40,
+#        choices=(
+#            ("bold", "Bold"),
+#            ("normal", "Normal"),
+#            ("light", "Light"),
+#        ),
+#        default="normal",
+#        help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light",
+#    )
+#    expiration_date = models.DateField(
+#        "Expiration Date",
+#        blank=True,
+#        null=True,
+#        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+#    )
+#    base_form_class = ArticlePlacementForm
+#
+#    def __str__(self):
+#        return f"{self.article}->{self.pagezone}"
+#
+#    class Meta:
+#        ordering = ("pagezone", "article")
+#
+#    panels = [
+#        FieldPanel("article", widget=forms.Select),
+#        #FieldPanel("article"),
+#        FieldPanel("pagezone"),
+#        "show_body",
+#        "boldness",
+#        "expiration_date",
+#    ]
+#
+#
 
 class SidebarArticlePage(BaseArticlePage):
     date = models.DateField("Post date", default=datetime.date.today)
