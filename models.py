@@ -375,7 +375,7 @@ class PlacementPage(Page):
             Q(expiration_date__isnull=True) |
             Q(expiration_date__gte=timezone.localdate())
         ):
-            if placement.zone_break == 1 or placement.zone_break == 3:
+            if placement.break_before:
                 make_new_zone = True
 
             if make_new_zone:
@@ -407,7 +407,7 @@ class PlacementPage(Page):
             placements_in_zone = placements_in_zone + 1
             if (
                 placements_in_zone >= zones[-1]["max_articles"] or
-                placement.zone_break > 1
+                placement.break_after
             ):
                 make_new_zone = True
 
@@ -687,11 +687,15 @@ class ArticlePagePlacement(Orderable):
         null=True,
         help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
     )
-    zone_break = models.IntegerField(
-        "break before/after",
-        default=0,
-        choices=[(0, "None"),(1, "Before"),(2, "After"), (3, "Both")],
-        help_text="Place a zone-break before and/or after this article"
+    break_before = models.BooleanField(
+        "break_before",
+        default=False,
+        help_text="Place a zone-break before this article"
+    )
+    break_after = models.BooleanField(
+        "break_after",
+        default=False,
+        help_text="Place a zone-break after this article"
     )
 
     def __str__(self):
@@ -703,7 +707,16 @@ class ArticlePagePlacement(Orderable):
     panels = [
         FieldPanel("article"),
         FieldPanel("page"),
-        "zone_break",
+        MultiFieldPanel(
+            [
+                FieldRowPanel(
+                    [
+                        "break_before",
+                        "break_after",
+                    ]
+                )
+            ]
+        ),
         "show_body",
         "boldness",
         "expiration_date",
