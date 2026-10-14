@@ -1,6 +1,6 @@
 from django.db import migrations
 
-def articlepage_placement(apps, schema_editor):
+def change_breaks(apps, schema_editor):
     ArticlePagePlacement = apps.get_model("webikwa_264", "ArticlePagePlacement")
     for placement in ArticlePagePlacement.objects.all():
         if (
@@ -12,7 +12,7 @@ def articlepage_placement(apps, schema_editor):
             placement.zone_break == 2 or
             placement.zone_break == 3
         ):
-            placement.break_after == True
+            placement.break_after = True
 
         placement.save()
 
@@ -24,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(articlepage_placement)
+        migrations.RunPython(change_breaks)
     ]
