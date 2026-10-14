@@ -312,8 +312,10 @@ class PlacementPageForm(WagtailAdminPageForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for form in self.formsets["articlepage_placements"].forms:
-            form.fields["article"].queryset = \
-                    ArticlePage.objects.live().order_by("-last_published_at")
+            form.fields["article"].queryset = (
+                    ArticlePage.objects.live()
+                    .order_by("-last_published_at")
+            )
 
 
 class PlacementPage(Page):
@@ -343,13 +345,14 @@ class PlacementPage(Page):
         FieldPanel("show_pagetitle"),
         MultiFieldPanel(
             [
-                FieldPanel("continue_label"), 
+                FieldPanel("continue_label"),
                 FieldPanel("show_article_info")
             ],
             heading="Article Display Options",
         ),
         InlinePanel(
             "articlepage_placements",
+            label="Article Placement",
             help_text="Articles to be placed on this page"
         ),
         InlinePanel(
@@ -370,7 +373,7 @@ class PlacementPage(Page):
             article__live=True
         ).filter(
             Q(expiration_date__isnull=True) |
-            Q(expiration_date__gt=timezone.localdate())
+            Q(expiration_date__gte=timezone.localdate())
         ):
             if placement.zone_break == 1 or placement.zone_break == 3:
                 make_new_zone = True
@@ -412,6 +415,15 @@ class PlacementPage(Page):
         context['zones'] = zones
 
         return context
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for placement in self.articlepage_placements.all():
+            if (
+                placement.expiration_date is not None and 
+                placement.expiration_date < timezone.localdate()
+            ):
+                placement.delete()
 
     def get_placements(self):
         placement_list = []

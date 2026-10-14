@@ -22,4 +22,51 @@ window.addEventListener("load", function(e) {
     }
     
   })
+
+  // Add a button to collapse child forms within inline formsets
+  // to make it easier to soert them
+  //
+  function setup_formset_collapser(formset_name) {
+
+    var collapserbutton = document.createElement("button")
+    collapserbutton.classList.add("button", "button-small", "button-secondary")
+    collapserbutton.innerText="expand/collapse formsets"
+    var collapserbar = document.createElement('div');
+    collapserbar.style.margin = '0 0 1rem';
+    collapserbar.appendChild(collapserbutton)
+    //collapserbar.innerHTML = `
+    //  <button type="button" class="button button-small button-secondary" id="button-" + formset_name + "-collapse">Collapse Formsets</button>
+    //`;
+    collapserbutton.addEventListener("click", function(e) {
+      e.preventDefault()
+      buttons=formset.querySelectorAll("button.w-panel__toggle")
+      if( buttons.length ) {
+        buttons[0].click()
+      }
+      for( button of buttons ) {
+        if(button.ariaExpanded != buttons[0].ariaExpanded ) {
+          button.click()
+        }
+      }
+    })
+    var formset = document.getElementById("id_" + formset_name + "-FORMS")
+    formset.prepend(
+      collapserbar
+    )
+  }
+
+  alert("1")
+  setup_formset_collapser("articlepage_placements")
+  alert("2")
+  setup_formset_collapser("page_zones")
+  
+
+
+
+    
+
+
+
+
+
 })
