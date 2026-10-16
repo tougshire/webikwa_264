@@ -274,7 +274,7 @@ class ImageBlock(StructBlock):
             ("widthlarge", "Large"),
             ("widthverylarge", "Very Large")
         ],
-        default="medium",
+        default="widthmedium",
     )
     alignment = ChoiceBlock(
         choices=[
@@ -341,7 +341,7 @@ class ExternalImageBlock(StructBlock):
             ("widthlarge", "Large"),
             ("widthverylarge", "Very Large")
         ],
-        default="medium",
+        default="widthmedium",
     )
     alignment = ChoiceBlock(
         choices=[
