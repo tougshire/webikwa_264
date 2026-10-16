@@ -261,34 +261,117 @@ class DocumentBlock(StructBlock):
 
 
 class ImageBlock(StructBlock):
-    image = ImageChooserBlock(required=True)
-    caption = CharBlock(required=False)
+    image = ImageChooserBlock()
     attribution = CharBlock(required=False)
     alt = CharBlock(required=True)
     link = URLBlock(required=False)
+    width = ChoiceBlock(
+        choices=[
+            ("widthverysmall", "Very Small"),
+            ("widthsmall", "Small"),
+            ("widthmediumsmall", "Medium Small"),
+            ("widthmedium", "Medium"),
+            ("widthlarge", "Large"),
+            ("widthverylarge", "Very Large")
+        ],
+        default="medium",
+    )
+    alignment = ChoiceBlock(
+        choices=[
+            ("aligncenter", "Center"),
+            ("alignleft", "Left"),
+            ("alignright", "Right"),
+        ],
+        default="aligncenter"
+    )
+    is_figure = ChoiceBlock(
+        choices=[
+            ("no","No"),
+            ("yes","Yes"),
+        ]
+    )
+    caption = CharBlock(
+        required=False,
+        help_text="Optional.  Will only display for figures",
+    )
+
+    FILTER_SPECS = {
+        "verysmall": "width-250",
+        "small": "width-250",
+        "mediumsmall": "width-400",
+        "medium": "width-400",
+        "mediumlarge": "width-600",
+        "large": "width-600",
+        "verylarge": "width-600",
+    }
 
     class Meta:
         icon = "image"
         template = "webikwa_264/blocks/image_block.html"
 
     def get_context(self, value, parent_context=None):
+
         context = super().get_context(value, parent_context=parent_context)
+
+        filter_spec = self.FILTER_SPECS.get(value["width"], "width-400")
+        context["rendition"] = value["image"].get_rendition(filter_spec)
+        context["src"]=context["rendition"].url
+
         context["alt_escaped"] = html.escape(value.get("alt"))
 
         return context
 
 
 class ExternalImageBlock(StructBlock):
-    url = URLBlock(required=True)
-    caption = CharBlock(required=False)
+
+    src = URLBlock(
+        required=False,
+        help_text="The source URL for an external image",
+    )
     attribution = CharBlock(required=False)
     alt = CharBlock(required=True)
     link = URLBlock(required=False)
+    width = ChoiceBlock(
+        choices=[
+            ("widthverysmall", "Very Small"),
+            ("widthsmall", "Small"),
+            ("widthmediumsmall", "Medium Small"),
+            ("widthmedium", "Medium"),
+            ("widthlarge", "Large"),
+            ("widthverylarge", "Very Large")
+        ],
+        default="medium",
+    )
+    alignment = ChoiceBlock(
+        choices=[
+            ("aligncenter", "Center"),
+            ("alignleft", "Left"),
+            ("alignright", "Right"),
+        ],
+        default="aligncenter"
+    )
+    is_figure = ChoiceBlock(
+        choices=[
+            ("no","No"),
+            ("yes","Yes"),
+        ]
+    )
+    caption = CharBlock(
+        required=False,
+        help_text="Optional.  Will only display for figures",
+    )
 
     class Meta:
         icon = "image"
-        template = "webikwa_264/blocks/external_image_block.html"
+        template = "webikwa_264/blocks/image_block.html"
 
+    def get_context(self, value, parent_context=None):
+
+        context = super().get_context(value, parent_context=parent_context)
+
+        context["alt_escaped"] = html.escape(value.get("alt"))
+
+        return context
 
 class HeadingBlock(StructBlock):
     heading_text = CharBlock(classname="title", required=True)
