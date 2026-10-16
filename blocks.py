@@ -288,7 +288,8 @@ class ImageBlock(StructBlock):
         choices=[
             ("no","No"),
             ("yes","Yes"),
-        ]
+        ],
+        default="no",
     )
     caption = CharBlock(
         required=False,

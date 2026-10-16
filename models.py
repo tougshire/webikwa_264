@@ -503,9 +503,9 @@ class ImageUrlHelpPanel(HelpPanel):
                                 </select>
                                 <select class="w-field" name="set_image_classfloat">
                                     <option value="sidedefault">Location</option>
-                                    <option value="sidecenter">Center</option>
-                                    <option value="sideleft">Left</option>
-                                    <option value="sideright">Right</option>
+                                    <option value="aligntcenter">Center</option>
+                                    <option value="aligntleft">Left</option>
+                                    <option value="aligntright">Right</option>
                                 </select>
                                 <p class="help">
                                     The following is the HTML code for the image with size and location classes reflecting the above choices.
