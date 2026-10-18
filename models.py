@@ -387,17 +387,18 @@ class PlacementPage(Page):
                     except Exception as e:
                         zone_source = None
                         print("Error making zone: ", e)
-                        current_zone = {
-                            "title": "",
-                            "placements":[],
-                            "max_articles": 3,
-                        }
 
                 if zone_source is not None:
                     current_zone = {
                         "title": zone_source.title,
                         "placements": [],
                         "max_articles":  zone_source.max_articles,
+                    }
+                else:
+                    current_zone = {
+                        "title": "",
+                        "placements":[],
+                        "max_articles": 3,
                     }
                 zones.append(current_zone)
                 placements_in_zone = 0
