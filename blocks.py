@@ -543,6 +543,10 @@ class WebikMarkdownBlock(StructBlock):
     class Meta:
         template = "webikwa_264/blocks/webik_markdown_block.html"
 
+class BlockGroupSeparatorBlock(StaticBlock):
+    class Meta:
+        admin_text = "A block group separator. Useful for clearing floats"
+        template = "webikwa_264/blocks/blockgroup_separator_block.html"
 
 class BaseStreamBlock(StreamBlock):
     summary_block = SummaryBlock()
@@ -566,7 +570,7 @@ class BaseStreamBlock(StreamBlock):
     )
     heading_block = HeadingBlock()
     markdown_block = MarkdownBlock(icon="code", label="legacy markdown block")
-
+    separator_block = BlockGroupSeparatorBlock()
 
 class BodyStreamBlock(BaseStreamBlock):
     pass
