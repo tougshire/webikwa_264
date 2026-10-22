@@ -274,15 +274,7 @@ class ImageBlock(StructBlock):
             ("widthlarge", "Large"),
             ("widthverylarge", "Very Large")
         ],
-        default="widthmedium",
-    )
-    alignment = ChoiceBlock(
-        choices=[
-            ("aligncenter", "Center"),
-            ("alignleft", "Left"),
-            ("alignright", "Right"),
-        ],
-        default="aligncenter"
+        default="widthlarge",
     )
     is_figure = ChoiceBlock(
         choices=[
@@ -296,16 +288,6 @@ class ImageBlock(StructBlock):
         help_text="Optional.  Will only display for figures",
     )
 
-    FILTER_SPECS = {
-        "verysmall": "width-250",
-        "small": "width-250",
-        "mediumsmall": "width-400",
-        "medium": "width-400",
-        "mediumlarge": "width-600",
-        "large": "width-600",
-        "verylarge": "width-600",
-    }
-
     class Meta:
         icon = "image"
         template = "webikwa_264/blocks/image_block.html"
@@ -313,10 +295,6 @@ class ImageBlock(StructBlock):
     def get_context(self, value, parent_context=None):
 
         context = super().get_context(value, parent_context=parent_context)
-
-        filter_spec = self.FILTER_SPECS.get(value["width"], "width-400")
-        context["rendition"] = value["image"].get_rendition(filter_spec)
-        context["src"]=context["rendition"].url
 
         context["alt_escaped"] = html.escape(value.get("alt"))
 
@@ -341,15 +319,7 @@ class ExternalImageBlock(StructBlock):
             ("widthlarge", "Large"),
             ("widthverylarge", "Very Large")
         ],
-        default="widthmedium",
-    )
-    alignment = ChoiceBlock(
-        choices=[
-            ("aligncenter", "Center"),
-            ("alignleft", "Left"),
-            ("alignright", "Right"),
-        ],
-        default="aligncenter"
+        default="widthlarge",
     )
     is_figure = ChoiceBlock(
         choices=[
@@ -529,6 +499,55 @@ class EventlistBlock(StructBlock):
         label = "Event List Block (depreciated = use EventsBlock and CalendarEvents"
 
 
+class IllustratedBlock(StructBlock):
+    markdown = MarkdownBlock()
+    image = ImageChooserBlock()
+    image_alt = CharBlock(required=True)
+    image_attribution = CharBlock(required=False)
+    colprops = ChoiceBlock(
+        #The value is the width of the first column
+        label="Column proportions",
+        choices=[
+            ("onethree", "one to three"),
+            ("twothree", "two to three"),
+            ("oneone", "one to one"),
+            ("threetwo", "three to two"),
+            ("threeone", "three to one"),
+        ],
+        default="threetwo",
+    )
+    image_side = ChoiceBlock(
+        label = "Image Side",
+        choices=[
+            ("left", "Left"),
+            ("right", "Right"),
+        ],
+        default="right"
+    )
+    image_is_figure = ChoiceBlock(
+        choices=(
+            ("no","No"),
+            ("yes","Yes"),
+        ),
+        default="yes",
+    )
+    figure_caption = CharBlock(
+        required=False,
+        help_text="Optional.  Will only display for figures",
+    )
+    class Meta:
+        icon = "image"
+        template = "webikwa_264/blocks/illustrated_block.html"
+
+    def get_context(self, value, parent_context=None):
+
+        context = super().get_context(value, parent_context=parent_context)
+
+        context["alt_escaped"] = html.escape(value.get("image_alt"))
+
+        return context
+
+
 class WebikMarkdownBlock(StructBlock):
     markdown = MarkdownBlock()
     applyclass = CharBlock(
@@ -551,6 +570,7 @@ class BlockGroupSeparatorBlock(StaticBlock):
 class BaseStreamBlock(StreamBlock):
     summary_block = SummaryBlock()
     webik_markdown_block = WebikMarkdownBlock(icon="code", label="Markdown Block")
+    illustrated_block = IllustratedBlock()
     image_block = ImageBlock()
     external_image_block = ExternalImageBlock()
     events_block = EventsBlock()
@@ -569,8 +589,8 @@ class BaseStreamBlock(StreamBlock):
         icon="media",
     )
     heading_block = HeadingBlock()
-    markdown_block = MarkdownBlock(icon="code", label="legacy markdown block")
     separator_block = BlockGroupSeparatorBlock()
+    markdown_block = MarkdownBlock(icon="code", label="legacy markdown block")
 
 class BodyStreamBlock(BaseStreamBlock):
     pass
