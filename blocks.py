@@ -262,8 +262,8 @@ class DocumentBlock(StructBlock):
 
 class ImageBlock(StructBlock):
     image = ImageChooserBlock()
-    attribution = CharBlock(required=False)
     alt = CharBlock(required=True)
+    attribution = CharBlock(required=False)
     link = URLBlock(required=False)
     width = ChoiceBlock(
         choices=[
@@ -307,8 +307,8 @@ class ExternalImageBlock(StructBlock):
         required=False,
         help_text="The source URL for an external image",
     )
-    attribution = CharBlock(required=False)
     alt = CharBlock(required=True)
+    attribution = CharBlock(required=False)
     link = URLBlock(required=False)
     width = ChoiceBlock(
         choices=[
@@ -325,7 +325,8 @@ class ExternalImageBlock(StructBlock):
         choices=[
             ("no","No"),
             ("yes","Yes"),
-        ]
+        ],
+        default="no"
     )
     caption = CharBlock(
         required=False,
