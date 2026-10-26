@@ -17,12 +17,11 @@ from wagtail.admin.filters import WagtailFilterSet
 
 from .models import (
     ArticlePage,
-    #ArticlePlacement,
-    ArticleSidebarPlacement,
-    SidebarArticlePage,
+    #SidebarArticlePage,
     CalendarEvent,
     PageZone,
-    PlacementPage
+    PlacementPage,
+    SidebarPage,
 )
 
 import django_filters
@@ -76,23 +75,23 @@ article_page_viewset = ArticlePageViewSet("article_pages")
 
 
 
-class SidebarArticlePageListingViewSet(PageListingViewSet):
-    icon = "article"
-    menu_order = 150
-    menu_label = "Sidebar Articles"
-    add_to_admin_menu = True
-    model = SidebarArticlePage
-
-
-sidebar_article_page_listing_viewset = SidebarArticlePageListingViewSet(
-    "sidebar_article_pages"
-)
-
-
-@hooks.register("register_admin_viewset")
-def register_sidebar_article_page_listing_viewset():
-    return sidebar_article_page_listing_viewset
-
+#class SidebarArticlePageListingViewSet(PageListingViewSet):
+#    icon = "article"
+#    menu_order = 150
+#    menu_label = "Sidebar Articles"
+#    add_to_admin_menu = True
+#    model = SidebarArticlePage
+#
+#
+#sidebar_article_page_listing_viewset = SidebarArticlePageListingViewSet(
+#    "sidebar_article_pages"
+#)
+#
+#
+#@hooks.register("register_admin_viewset")
+#def register_sidebar_article_page_listing_viewset():
+#    return sidebar_article_page_listing_viewset
+#
 
 class TagsSnippetViewSet(SnippetViewSet):
     panels = [FieldPanel("name")]  # only show the name field
@@ -130,13 +129,13 @@ def global_admin_js():
 
 @hooks.register("after_create_page")
 def do_after_page_create(request, page):
-    if isinstance(page, ArticlePage) or isinstance(page, SidebarArticlePage):
+    if isinstance(page, ArticlePage):
         return redirect("/admin/")
 
 
 @hooks.register("after_edit_page")
 def do_after_page_edit(request, page):
-    if isinstance(page, ArticlePage) or isinstance(page, SidebarArticlePage):
+    if isinstance(page, ArticlePage):
         return redirect("/admin/")
 
 @hooks.register("register_admin_viewset")
@@ -165,45 +164,17 @@ def register_article_page_chooser_viewset():
     return article_page_chooser_viewset
 
 
-#class ArticlePlacementFilterSet(WagtailFilterSet):
-#    article = django_filters.ModelChoiceFilter(
-#        queryset=ArticlePage.objects.order_by("-last_published_at")
-#    )
-#    pagezone = django_filters.ModelChoiceFilter(
-#        queryset=PageZone.objects.order_by("page", "sort_order")
-#    )
-#    class Meta:
-#        model=ArticlePlacement
-#        fields=["article", "pagezone", "expiration_date"]
-#
-#class ArticlePlacementViewSet(SnippetViewSet):
-#    model = ArticlePlacement
-#    add_to_admin_menu=True
-#    menu_order=120
-#    list_display = ["article", "pagezone", "expiration_date"]
+
+#class ArticleSidebarPlacementViewSet(SnippetViewSet):
+#    model = ArticleSidebarPlacement
+#    list_display = ["article", 'sidebar_pagezone', "expiration_date"]
 #    inspect_view_enabled = True
-#    filterset_class = ArticlePlacementFilterSet
-#
-##    list_filter = {
-##        "pagezone": ["exact"],
-##        "article": ["exact"],
-##        "expiration_date": ["lt"],
-##    }
+#    add_to_admin_menu = True
+#    menu_order = 175
+#    #list_filter = {"page": ["exact"], "expiration_date": ["lt"]}
 #
 #
-#register_snippet(ArticlePlacementViewSet)
-#
-
-class ArticleSidebarPlacementViewSet(SnippetViewSet):
-    model = ArticleSidebarPlacement
-    list_display = ["article", 'sidebar_pagezone', "expiration_date"]
-    inspect_view_enabled = True
-    add_to_admin_menu = True
-    menu_order = 175
-    #list_filter = {"page": ["exact"], "expiration_date": ["lt"]}
-
-
-register_snippet(ArticleSidebarPlacementViewSet)
+#register_snippet(ArticleSidebarPlacementViewSet)
 
 
 class PageZoneFilterSet(WagtailFilterSet):
@@ -252,4 +223,25 @@ placement_page_listing_viewset = PlacementPageListingViewSet("placement_pages")
 @hooks.register("register_admin_viewset")
 def register_placement_page_listing_viewset():
     return placement_page_listing_viewset
+
+
+class SidebarPageListingViewSet(PageListingViewSet):
+    icon = "article"
+    menu_order = 115 
+    menu_label = "Sidebars"
+    add_to_admin_menu = True
+    model = SidebarPage
+    columns = PageListingViewSet.columns + [
+        Column("get_sidebar_placements", "Articles"),
+    ]
+    filterset_class = ArticlePageViewSetFilterSet
+    # ordering = ["-last_published_at"]
+
+
+sidebar_page_listing_viewset = SidebarPageListingViewSet("sidebar_pages")
+
+@hooks.register("register_admin_viewset")
+def register_sidebar_page_listing_viewset():
+    return sidebar_page_listing_viewset
+
 

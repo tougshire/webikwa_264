@@ -148,7 +148,7 @@ class ArticleIndexPage(Page):
         help_text='The text to display in the "continue reading" link.  Blank to hide link',
     )
 
-    subpage_types = ["ArticlePage", "SidebarArticlePage"]
+    subpage_types = ["ArticlePage",]
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
@@ -177,6 +177,16 @@ class ArticleIndexPage(Page):
 
         return context
 
+class SidebarPageForm(WagtailAdminPageForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for form in self.formsets["articlesidebar_placements"].forms:
+            form.fields["article"].queryset = (
+                    ArticlePage.objects.live()
+                    .order_by("-last_published_at")
+            )
+
+
 
 class SidebarPage(Page):
     show_pagetitle = models.BooleanField(
@@ -198,32 +208,37 @@ class SidebarPage(Page):
         FieldPanel("show_pagetitle"),
         FieldPanel("location"),
         InlinePanel(
-            "sidebar_page_zones", help_text="zones are required. Create at least one"
+            "articlesidebar_placements", help_text="articles"
         ),
     ]
 
+    def get_context(self, request):
+        context = super().get_context(request)
 
-class SidebarPageZone(Orderable):
-    sidebar_page = ParentalKey(
-        SidebarPage, on_delete=models.CASCADE, related_name="sidebar_page_zones"
-    )
-    name = models.CharField(
-        max_length=40,
-        help_text='The name used to identify this zone in the admin panel. This is required but can be as simple as a number or letter (one zone can be named "1", the next "2", etc)',
-    )
-    title = models.CharField(
-        max_length=40,
-        blank=True,
-        help_text="The title, which is optional, to be displayed on the page",
-    )
+        return context
 
-    def get_active_placements(self):
-        return self.article_sidebarplacements.filter(
-            expiration_date__gte=timezone.localdate()
-        ) | self.article_sidebarplacements.filter(expiration_date__isnull=True)
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for placement in self.articlesidebar_placements.all():
+            if (
+                placement.expiration_date is not None and 
+                placement.expiration_date < timezone.localdate()
+            ):
+                placement.delete()
 
-    def __str__(self):
-        return "{} {}".format(self.sidebar_page, self.name)
+    def get_placements(self):
+        placement_list = []
+        for placement in self.articlepage_placements.all():
+            placement_line = f"{placement.article}"
+            if (
+                placement.expiration_date is not None
+                and placement.expiration_date < timezone.localdate()
+            ):
+                placement_line = placement_line + " (expired)"
+            placement_list.append(placement_line)
+        return placement_list
+
+    base_form_class = SidebarPageForm
 
 
 @register_snippet
@@ -460,13 +475,6 @@ class PageZone(Orderable):
         help_text="The maximum number of articles per zone"
     )
 
-#    def get_active_placements(self):
-#        placement_query = ( self.article_placements.filter(
-#            expiration_date__gte=timezone.localdate()
-#        ) | self.article_placements.filter(expiration_date__isnull=True))
-#        return placement_query
-
-
     def __str__(self):
         return "{}: {}".format(self.page, self.name)
 
@@ -659,7 +667,8 @@ class ArticlePlacementForm(WagtailAdminModelForm):
 class ArticlePagePlacement(Orderable):
 
     page = ParentalKey(
-        PlacementPage,on_delete=models.CASCADE,
+        PlacementPage,
+        on_delete=models.CASCADE,
         related_name="articlepage_placements"
     )
     article = models.ForeignKey(
@@ -723,76 +732,72 @@ class ArticlePagePlacement(Orderable):
         "expiration_date",
     ]
 
-#class ArticlePlacement(models.Model):
+#class SidebarArticlePage(BaseArticlePage):
+#    date = models.DateField("Post date", default=datetime.date.today)
+#    show_title = models.BooleanField(
+#        default=True, help_text="If the title should be shown"
+#    )
 #
-#    article = ParentalKey(
-#        ArticlePage,
-#        on_delete=models.CASCADE,
-#        related_name="article_placements"
-#    )
-#    pagezone = models.ForeignKey(
-#        PageZone, on_delete=models.CASCADE, null=True, related_name="article_placements"
-#    )
-#    show_body = models.BooleanField(
-#        "show full body", default=False, help_text="Show the body instead the summary"
-#    )
-#    boldness = models.CharField(
-#        "boldness",
-#        max_length=40,
-#        choices=(
-#            ("bold", "Bold"),
-#            ("normal", "Normal"),
-#            ("light", "Light"),
-#        ),
-#        default="normal",
-#        help_text="A signal to the template about how to style this article on this page, from Very Bold to Very Light",
-#    )
-#    expiration_date = models.DateField(
-#        "Expiration Date",
-#        blank=True,
-#        null=True,
-#        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
-#    )
-#    base_form_class = ArticlePlacementForm
+#    parent_page_types = ["ArticleIndexPage"]
 #
-#    def __str__(self):
-#        return f"{self.article}->{self.pagezone}"
-#
-#    class Meta:
-#        ordering = ("pagezone", "article")
-#
-#    panels = [
-#        FieldPanel("article", widget=forms.Select),
-#        #FieldPanel("article"),
-#        FieldPanel("pagezone"),
-#        "show_body",
-#        "boldness",
-#        "expiration_date",
+#    content_panels = Page.content_panels + [
+#        FieldPanel("show_title"),
+#        FieldPanel("body"),
 #    ]
 #
 #
+#?class ArticleSidebarPlacement(Orderable):
+#?    sidebar_page = ParentakKey(
+#?        SidebarPage,
+#?        on_delete=models.CASCADE,
+#?        related_name="articlesidebarpage_placements",
+#?    )
+#?    article = models.ForeignKey(
+#?        ArticlePage,
+#?        on_delete=models.CASCADE,
+#?        null=True,
+#?        related_name="articlepage_placements"
+#?    )
+#?    expiration_date = models.DateField(
+#?        "Expiration Date",
+#?        blank=True,
+#?        null=True,
+#?        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+#?    )
+#?
+#?    def __str__(self):
+#?        return f"{self.article}->{self.sidebar_pagezone}"
+#?
+#?    panels = [
+#?        "article",
+#?        FieldPanel("sidebar_pagezone", widget=forms.Select),
+#?        "expiration_date",
+#?    ]
+#?
 
-class SidebarArticlePage(BaseArticlePage):
-    date = models.DateField("Post date", default=datetime.date.today)
-    show_title = models.BooleanField(
-        default=True, help_text="If the title should be shown"
-    )
 
-    parent_page_types = ["ArticleIndexPage"]
+# Creating this form seems to be necessary because Article's order_by is otherwise overwritten when Wagtail reders the panel
+class ArticleSidebarPlacementForm(WagtailAdminModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+        self.fields["article"].queryset = ArticlePage.objects.order_by("-last_published_at")
 
-    content_panels = Page.content_panels + [
-        FieldPanel("show_title"),
-        FieldPanel("body"),
-    ]
-
+# Creating this form seems to be necessary because Article's order_by is otherwise overwritten when Wagtail reders the panel
 
 class ArticleSidebarPlacement(Orderable):
-    article = ParentalKey(SidebarArticlePage, related_name="article_sidebarplacements")
-    sidebar_pagezone = models.ForeignKey(
-        SidebarPageZone,
+
+    sidebar = ParentalKey(
+        SidebarPage,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="articlesidebar_placements"
+    )
+    article = models.ForeignKey(
+        ArticlePage,
         on_delete=models.CASCADE,
         null=True,
-        related_name="article_sidebarplacements",
+        related_name="articlesidebar_placements"
     )
     expiration_date = models.DateField(
         "Expiration Date",
@@ -802,14 +807,16 @@ class ArticleSidebarPlacement(Orderable):
     )
 
     def __str__(self):
-        return f"{self.article}->{self.sidebar_pagezone}"
+        return f"{self.article}->{self.page}"
+
+    class Meta:
+        ordering = ("sidebar", "sort_order", "article",)
 
     panels = [
-        "article",
-        FieldPanel("sidebar_pagezone", widget=forms.Select),
+        FieldPanel("article"),
+        FieldPanel("sidebar"),
         "expiration_date",
     ]
-
 
 class ArticlePageImage(Orderable):
     page = ParentalKey(
