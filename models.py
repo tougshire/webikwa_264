@@ -586,7 +586,7 @@ class ArticleSidebarPlacementForm(WagtailAdminModelForm):
 
 class ArticleSidebarPlacement(Orderable):
 
-    sidebar = ParentalKey(
+    page = ParentalKey(
         SidebarPage,
         blank=True,
         null=True,
@@ -619,11 +619,11 @@ class ArticleSidebarPlacement(Orderable):
         return f"{self.article}->{self.page}"
 
     class Meta:
-        ordering = ("sidebar", "sort_order", "article",)
+        ordering = ("page", "sort_order", "article",)
 
     panels = [
         FieldPanel("article"),
-        FieldPanel("sidebar"),
+        FieldPanel("page"),
         "show_title",
         "expiration_date",
     ]
