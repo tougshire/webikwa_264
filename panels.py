@@ -3,6 +3,7 @@ from wagtail.admin.panels import Panel,HelpPanel
 from taggit.models import Tag, TaggedItemBase
 from django.db.models import Count, Q
 from wagtail.images.models import Image as WagtailImage
+import html
 
 class ImageUrlHelpPanel(HelpPanel):
     class BoundPanel(HelpPanel.BoundPanel):
