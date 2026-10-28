@@ -21,6 +21,11 @@ class Migration(migrations.Migration):
             name='article',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='articlesidebar_placements', to='webikwa_264.articlepage'),
         ),
+        migrations.AddField(
+            model_name='articlesidebarplacement',
+            name='show_title',
+            field=models.IntegerField(choices=[(0, "No"),(1, "Yes"),],default=0, help_text="Show the title in the sidebar")
+        ),
         migrations.AlterModelOptions(
             name='articlesidebarplacement',
             options={'ordering': ('sidebar', 'sort_order', 'article')},

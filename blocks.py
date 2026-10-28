@@ -261,6 +261,7 @@ class DocumentBlock(StructBlock):
 
 
 class ImageBlock(StructBlock):
+
     image = ImageChooserBlock()
     alt = CharBlock(required=True)
     attribution = CharBlock(required=False)
@@ -501,6 +502,7 @@ class EventlistBlock(StructBlock):
 
 
 class IllustratedBlock(StructBlock):
+
     markdown = MarkdownBlock()
     image = ImageChooserBlock()
     image_alt = CharBlock(required=True)
@@ -550,6 +552,9 @@ class IllustratedBlock(StructBlock):
 
 
 class WebikMarkdownBlock(StructBlock):
+
+
+
     markdown = MarkdownBlock()
     applyclass = CharBlock(
         required=False,
@@ -569,6 +574,7 @@ class BlockGroupSeparatorBlock(StaticBlock):
         template = "webikwa_264/blocks/blockgroup_separator_block.html"
 
 class BaseStreamBlock(StreamBlock):
+
     summary_block = SummaryBlock()
     webik_markdown_block = WebikMarkdownBlock(icon="code", label="Markdown Block")
     illustrated_block = IllustratedBlock()

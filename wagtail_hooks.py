@@ -19,7 +19,6 @@ from .models import (
     ArticlePage,
     #SidebarArticlePage,
     CalendarEvent,
-    PageZone,
     PlacementPage,
     SidebarPage,
 )
@@ -111,19 +110,19 @@ register_snippet(TagsSnippetViewSet)
 def global_admin_css():
     try:
         return format_html(
-            "<link rel=\"stylesheet\" href=\"{}\">\n<link rel=\"stylesheet\" href=\"{}\">", static("webikwa_264/admin/css/webikwa_264.css"), static(settings.WEBIKWA["admin_custom_css"])
+            "<link rel=\"stylesheet\" href=\"{}\">\n<link rel=\"stylesheet\" href=\"{}\">", static("webikwa_264/admin/css/webikwa_264.css?cssver=1vaaqh06"), static(settings.WEBIKWA["admin_custom_css"])
         )
     except( AttributeError, KeyError):
         logging.info("No custom admin stylesheet specified. If desired, refer to a custom admin stylesheet in settings.WEBEKAH[\"admin_custom_css\"")
         return format_html(
-            "<link rel=\"stylesheet\" href=\"{}\">", static("webikwa_264/admin/css/webikwa_264.css")
+            "<link rel=\"stylesheet\" href=\"{}\">", static("webikwa_264/admin/css/webikwa_264.css?cssver=1vaaqi08")
         )
 
 
 @hooks.register("insert_global_admin_js")
 def global_admin_js():
     return format_html(
-        '<script src="{}"></script>', static("webikwa_264/admin/js/webikwa_264.js")
+        '<script src="{}"></script>', static("webikwa_264/admin/js/webikwa_264.js?jsver=1")
     )
 
 
@@ -163,35 +162,6 @@ article_page_chooser_viewset = ArticlePageChooserViewSet("article_page_chooser")
 def register_article_page_chooser_viewset():
     return article_page_chooser_viewset
 
-
-
-#class ArticleSidebarPlacementViewSet(SnippetViewSet):
-#    model = ArticleSidebarPlacement
-#    list_display = ["article", 'sidebar_pagezone', "expiration_date"]
-#    inspect_view_enabled = True
-#    add_to_admin_menu = True
-#    menu_order = 175
-#    #list_filter = {"page": ["exact"], "expiration_date": ["lt"]}
-#
-#
-#register_snippet(ArticleSidebarPlacementViewSet)
-
-
-class PageZoneFilterSet(WagtailFilterSet):
-    article_placements__article = django_filters.ModelChoiceFilter(
-        queryset=ArticlePage.objects.order_by("-last_published_at")
-    )
-    class Meta:
-        model=PageZone
-        fields=["article_placements__article"]
-
-class PageZoneViewSet(SnippetViewSet):
-    model = PageZone
-    list_display = ["page", 'name', "title", Column("get_article_listr", "Article")]
-    inspect_view_enabled = True
-    add_to_admin_menu = True
-    menu_order = 175
-    filterset_class = PageZoneFilterSet
 
 
 class CalendarEventViewSet(SnippetViewSet):

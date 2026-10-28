@@ -1,3 +1,15 @@
+.help table {
+	border:1px solid #555;
+	padding-left:.5em;
+	padding-right:.5em;
+  text-align: left;
+
+}
+
+.help table td {
+  border: 1px solid #555;
+}
+
 .help_placement_page_list table {
 
     border-collapse: collapse;

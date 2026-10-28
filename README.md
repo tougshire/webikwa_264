@@ -65,9 +65,6 @@ These instructions are written with the assumption that you're starting a new pr
 - create a new placement page
   - using the 'add child page' link, create a new placement page
   - title it "Featured Articles"
-  - click "Add Page Zone"
-  - name the page zone "1".  You can leave the title blank
-  - add four more page zones and name them "2","3","4", and "5" 
   - publish the page
 - set the home page to redirect to the featured articles page
   - go to pages -> home, the click on the edit icon (a pencil)
@@ -93,7 +90,6 @@ These instructions are written with the assumption that you're starting a new pr
     - Place the article in the "Featured Articles" page
       - Click "Add Article Placement"
       - If this is the first article, place it in Featured Articles 1.  
-      - Place other articles in other zones.  Use all zones and make some zones have more than one article
     - Publish the article
 
 ### Adding sidebar articles

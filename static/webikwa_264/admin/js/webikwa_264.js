@@ -55,8 +55,7 @@ window.addEventListener("load", function(e) {
     )
   }
 
-  setup_formset_collapser("articlepage_placements")
-  setup_formset_collapser("page_zones")
+  /* setup_formset_collapser("articlepage_placements") */
   
 
 

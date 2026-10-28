@@ -13,7 +13,7 @@ import requests
 
 from django import forms
 from django.conf import settings
-from django.db import OperationalError, models
+from django.db import OperationalError, models, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe, strip_tags
@@ -54,7 +54,7 @@ from wagtail.snippets.models import register_snippet
 from wagtailmarkdown.fields import MarkdownField
 
 from .blocks import BodyStreamBlock
-
+from .panels import ImageUrlHelpPanel, PlacementListPanel, TagListPanel
 
 logger = logging.getLogger(__name__)
 
@@ -189,9 +189,11 @@ class SidebarPageForm(WagtailAdminPageForm):
 
 
 class SidebarPage(Page):
+
     show_pagetitle = models.BooleanField(
         default=False, help_text="If the title of this sidebar should be shown"
     )
+
     location = models.CharField(
         "location",
         max_length=40,
@@ -217,23 +219,11 @@ class SidebarPage(Page):
 
         return context
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        for placement in self.articlesidebar_placements.all():
-            if (
-                placement.expiration_date is not None and 
-                placement.expiration_date < timezone.localdate()
-            ):
-                placement.delete()
-
     def get_placements(self):
         placement_list = []
         for placement in self.articlepage_placements.all():
             placement_line = f"{placement.article}"
-            if (
-                placement.expiration_date is not None
-                and placement.expiration_date < timezone.localdate()
-            ):
+            if placement.is_expired():
                 placement_line = placement_line + " (expired)"
             placement_list.append(placement_line)
         return placement_list
@@ -283,46 +273,6 @@ class BaseArticlePage(Page):
         return "-latest_revision_created_at"
 
 
-class TagListPanel(HelpPanel):
-    class BoundPanel(HelpPanel.BoundPanel):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            content = '<div class="help_tag_list"><h3>Current Tags</h3>'
-            content = (
-                content
-                + "<table id='tagged_item_list'><tr><th>Tag</th><th>Count</th><th>&nbsp;</th></tr>"
-            )
-            tagged_items = Tag.objects.annotate(num_tags=Count("articlepage")).order_by(
-                "-num_tags"
-            )
-            for tagged_item in tagged_items:
-                content = content + format_html(
-                    "<tr><td>{}</td><td>{}</td><td><button type='button' data-slug='{}'>add</button></tr>",
-                    tagged_item.slug,
-                    tagged_item.num_tags,
-                    tagged_item.slug,
-                )
-
-            content = content + "</table></div>"
-            content = (
-                content
-                + """
-            <script>
-                document.getElementById("tagged_item_list").addEventListener("click", function(e) {
-                    e.preventDefault()
-                    el_targ = e.target
-                    if(el_targ.tagName.toLowerCase() == "button") {
-                        tagit_div = document.getElementById("id_tags").parentNode
-                        tagit_new = tagit_div.querySelector("li[class='tagit-new']").querySelector("input")
-                        tagit_new.parentNode.dispatchEvent(new MouseEvent("click", { view: window, bubbles: true, cancelable: true } ) )
-                        tagit_new.value=el_targ.dataset.slug
-                    }
-                })
-                </script>
-                """
-            )
-            self.content = content
-
 class PlacementPageForm(WagtailAdminPageForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -332,8 +282,8 @@ class PlacementPageForm(WagtailAdminPageForm):
                     .order_by("-last_published_at")
             )
 
-
 class PlacementPage(Page):
+
     show_pagetitle = models.BooleanField(
         default=True, help_text="If the page title should be shown"
     )
@@ -370,9 +320,6 @@ class PlacementPage(Page):
             label="Article Placement",
             help_text="Articles to be placed on this page"
         ),
-        InlinePanel(
-            "page_zones", help_text="Create page zones to customize certain aspects of how articles in that zone will be displayed"
-        ),
         InlinePanel("submenu_items"),
     ]
 
@@ -394,141 +341,31 @@ class PlacementPage(Page):
                 make_new_zone = True
 
             if make_new_zone:
-                try:
-                    zone_source=self.page_zones.all()[ zone_index ]
-                except IndexError:
-                    try:
-                        zone_source = self.page_zones.last()
-                    except Exception as e:
-                        zone_source = None
-                        print("Error making zone: ", e)
+                current_zone = {
+                    "placements":[]
+                }
 
-                if zone_source is not None:
-                    current_zone = {
-                        "title": zone_source.title,
-                        "placements": [],
-                        "max_articles":  zone_source.max_articles,
-                    }
-                else:
-                    current_zone = {
-                        "title": "",
-                        "placements":[],
-                        "max_articles": 3,
-                    }
                 zones.append(current_zone)
                 placements_in_zone = 0
                 make_new_zone = False
 
             zones[-1]["placements"].append(placement)
             placements_in_zone = placements_in_zone + 1
-            if (
-                placements_in_zone >= zones[-1]["max_articles"] or
-                placement.break_after
-            ):
-                make_new_zone = True
-
 
         context['zones'] = zones
 
         return context
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        for placement in self.articlepage_placements.all():
-            if (
-                placement.expiration_date is not None and 
-                placement.expiration_date < timezone.localdate()
-            ):
-                placement.delete()
-
     def get_placements(self):
         placement_list = []
         for placement in self.articlepage_placements.all():
             placement_line = f"{placement.article}"
-            if (
-                placement.expiration_date is not None
-                and placement.expiration_date < timezone.localdate()
-            ):
+            if placement.is_expired():
                 placement_line = placement_line + " (expired)"
             placement_list.append(placement_line)
         return placement_list
 
     base_form_class = PlacementPageForm
-
-
-class PageZone(Orderable):
-    page = ParentalKey(
-        PlacementPage, on_delete=models.CASCADE, related_name="page_zones"
-    )
-    name = models.CharField(
-        max_length=40,
-        help_text='The name used to identify this zone in the admin panel.  This is required, but can be as simple as a number or letter (one pagezone can be named "1", the next "2", etc.)',
-    )
-    title = models.CharField(
-        max_length=40,
-        blank=True,
-        help_text="The title, which is optional.  The title will be displayed on the page",
-    )
-    max_articles = models.IntegerField(
-        "max articles",
-        default=3,
-        help_text="The maximum number of articles per zone"
-    )
-
-    def __str__(self):
-        return "{}: {}".format(self.page, self.name)
-
-    class Meta:
-        ordering = ["page", "sort_order"]
-
-
-class ImageUrlHelpPanel(HelpPanel):
-    class BoundPanel(HelpPanel.BoundPanel):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-
-            try:
-                url = self.instance.image.file.url
-                alt_text = html.escape(self.instance.alt_text.replace('"', "'"))
-                instid = self.instance.id
-                content = """
-                    <div>
-                        <div class="help_image_url">
-                            <div>
-                                <label class="w-field__label">Image Code</label>
-                            </div>
-                                <p class="help">
-                                    These options are for generating code to place this image in a markdown or html block.  They do not affect how this image is displayed in an image block.
-                                </p>
-                            <div>
-                                <select class="w-field" name="set_image_classwidth">
-                                    <option value="widthstandard">Width</option>
-                                    <option value="widthverysmall">Very Small</option>
-                                    <option value="widthsmall">Small</option>
-                                    <option value="widthmediumsmall">Medium Small</option>
-                                    <option value="widthmedium">Medium</option>
-                                    <option value="widthlarge">Large</option>
-                                    <option value="widthverylarge">Very Large</option>
-                                </select>
-                                <select class="w-field" name="set_image_classfloat">
-                                    <option value="sidedefault">Location</option>
-                                    <option value="aligntcenter">Center</option>
-                                    <option value="aligntleft">Left</option>
-                                    <option value="aligntright">Right</option>
-                                </select>
-                                <p class="help">
-                                    The following is the HTML code for the image with size and location classes reflecting the above choices.
-                                </p>
-                                <span class="help_image_url_copy"
-                                <span class="help_image_url_snippet" name="image_url" data-default="&lt;img src=&quot;{url}&quot alt=&quot;{alt_text}&quot; class=&quot;&quot /&gt;">&lt;img src=&quot;{url}&quot alt=&quot;{alt_text}&quot; class=&quot;sidedefault widthdefault&quot; /&gt;</span>
-                                <button type="button" class="help_image_url_copy" name="copy_image_url">copy snippet</button>
-                            </div>
-                        </div>
-                    </div>
-                """
-                self.content = content.format(instid=instid, url=url, alt_text=alt_text)
-            except WagtailImage.DoesNotExist as e:
-                print(e, type(e))
 
 
 class ArticlePage(BaseArticlePage):
@@ -584,6 +421,8 @@ class ArticlePage(BaseArticlePage):
             heading="Images",
         ),
 
+        PlacementListPanel(),
+
         MultiFieldPanel([FieldPanel("tags"), TagListPanel()]),
         FieldPanel("custom_css"),
     ]
@@ -605,10 +444,7 @@ class ArticlePage(BaseArticlePage):
         placement_list = []
         for placement in self.articlepage_placements.all():
             placement_line = f"{placement.page}"
-            if (
-                placement.expiration_date is not None
-                and placement.expiration_date < timezone.localdate()
-            ):
+            if placement.is_expired():
                 placement_line = placement_line + " (expired)"
             placement_list.append(placement_line)
         return placement_list
@@ -695,7 +531,7 @@ class ArticlePagePlacement(Orderable):
         "Expiration Date",
         blank=True,
         null=True,
-        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+        help_text="The date after which the article will be removed from this page. This is only takes affect when remove_exipred_placements is run",
     )
     break_before = models.BooleanField(
         "break_before",
@@ -710,6 +546,13 @@ class ArticlePagePlacement(Orderable):
 
     def __str__(self):
         return f"{self.article}->{self.page}"
+
+    def is_expired(self):
+        try:
+            return timezone.localdate() > self.expiration_date
+        except:
+            return False
+
 
     class Meta:
         ordering = ("page", "sort_order", "article",)
@@ -731,49 +574,6 @@ class ArticlePagePlacement(Orderable):
         "boldness",
         "expiration_date",
     ]
-
-#class SidebarArticlePage(BaseArticlePage):
-#    date = models.DateField("Post date", default=datetime.date.today)
-#    show_title = models.BooleanField(
-#        default=True, help_text="If the title should be shown"
-#    )
-#
-#    parent_page_types = ["ArticleIndexPage"]
-#
-#    content_panels = Page.content_panels + [
-#        FieldPanel("show_title"),
-#        FieldPanel("body"),
-#    ]
-#
-#
-#?class ArticleSidebarPlacement(Orderable):
-#?    sidebar_page = ParentakKey(
-#?        SidebarPage,
-#?        on_delete=models.CASCADE,
-#?        related_name="articlesidebarpage_placements",
-#?    )
-#?    article = models.ForeignKey(
-#?        ArticlePage,
-#?        on_delete=models.CASCADE,
-#?        null=True,
-#?        related_name="articlepage_placements"
-#?    )
-#?    expiration_date = models.DateField(
-#?        "Expiration Date",
-#?        blank=True,
-#?        null=True,
-#?        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
-#?    )
-#?
-#?    def __str__(self):
-#?        return f"{self.article}->{self.sidebar_pagezone}"
-#?
-#?    panels = [
-#?        "article",
-#?        FieldPanel("sidebar_pagezone", widget=forms.Select),
-#?        "expiration_date",
-#?    ]
-#?
 
 
 # Creating this form seems to be necessary because Article's order_by is otherwise overwritten when Wagtail reders the panel
@@ -799,11 +599,20 @@ class ArticleSidebarPlacement(Orderable):
         null=True,
         related_name="articlesidebar_placements"
     )
+    show_title = models.IntegerField(
+        choices=[
+            (0, "No"),
+            (1, "Yes"),
+        ],
+        default=0,
+        help_text="Show the title in the sidebar"
+    )
+
     expiration_date = models.DateField(
         "Expiration Date",
         blank=True,
         null=True,
-        help_text="The date after which the article will be removed from this page zone. This is only takes affect when remove_exipred_placements is run",
+        help_text="The date after which the article will be removed from this page. This is only takes affect when remove_exipred_placements is run",
     )
 
     def __str__(self):
@@ -815,6 +624,7 @@ class ArticleSidebarPlacement(Orderable):
     panels = [
         FieldPanel("article"),
         FieldPanel("sidebar"),
+        "show_title",
         "expiration_date",
     ]
 
