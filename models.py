@@ -351,6 +351,8 @@ class PlacementPage(Page):
 
             zones[-1]["placements"].append(placement)
             placements_in_zone = placements_in_zone + 1
+            if placement.break_after:
+                make_new_zone = True
 
         context['zones'] = zones
 
