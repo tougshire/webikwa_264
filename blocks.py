@@ -550,10 +550,7 @@ class IllustratedBlock(StructBlock):
 
         return context
 
-
 class WebikMarkdownBlock(StructBlock):
-
-
 
     markdown = MarkdownBlock()
     applyclass = CharBlock(

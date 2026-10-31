@@ -153,7 +153,10 @@ class ArticleIndexPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
         MultiFieldPanel(
-            [FieldPanel("continue_label"), FieldPanel("show_article_info")],
+            [
+                FieldPanel("continue_label"),
+                FieldPanel("show_article_info"),
+            ],
             heading="Article Display Options",
         ),
         InlinePanel("submenu_items"),
