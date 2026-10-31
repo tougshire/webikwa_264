@@ -548,6 +548,12 @@ class ArticlePagePlacement(Orderable):
         default=False,
         help_text="Place a zone-break after this article"
     )
+    nocrop_summary = models.BooleanField(
+        "don't crop summary images",
+        default=False,
+        help_text="Don't crop images in the summary view"
+    )
+
 
     def __str__(self):
         return f"{self.article}->{self.page}"
@@ -565,6 +571,7 @@ class ArticlePagePlacement(Orderable):
     panels = [
         FieldPanel("article"),
         FieldPanel("page"),
+        FieldPanel("expiration_date"),
         MultiFieldPanel(
             [
                 FieldRowPanel(
@@ -572,12 +579,13 @@ class ArticlePagePlacement(Orderable):
                         "break_before",
                         "break_after",
                     ]
-                )
-            ]
-        ),
-        "show_body",
-        "boldness",
-        "expiration_date",
+                ),
+                "nocrop_summary",
+                "show_body",
+                "boldness",
+            ],
+            heading="Summary View Options"
+        )
     ]
 
 
