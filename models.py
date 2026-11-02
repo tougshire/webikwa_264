@@ -628,6 +628,12 @@ class ArticleSidebarPlacement(Orderable):
         help_text="The date after which the article will be removed from this page. This is only takes affect when remove_exipred_placements is run",
     )
 
+    def is_expired(self):
+        try:
+            return timezone.localdate() > self.expiration_date
+        except:
+            return False
+
     def __str__(self):
         return f"{self.article}->{self.page}"
 
